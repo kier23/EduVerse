@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { StatCard } from "@/components/layout/stat-card";
 import { AppShell } from "@/layouts/app-shell";
 import { fetchAllAccounts, fetchStudentSubjects, type AccountRecord } from "@/lib/api/eduverse";
 import { cn } from "@/lib/utils";
@@ -17,21 +18,24 @@ export function SuperadminDashboardPage() {
 
   const teacherCount = accounts.filter((account) => account.role === "teacher").length;
   const studentCount = accounts.filter((account) => account.role === "student").length;
-  const superadminCount = accounts.filter((account) => account.role === "superadmin").length;
+  const adminCount = accounts.filter((account) => account.role === "admin" || account.role === "superadmin").length;
 
   return (
-    <AppShell title="Superadmin Dashboard">
+    <AppShell title="Admin Dashboard">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card><CardHeader><CardTitle>Total Accounts</CardTitle></CardHeader><CardContent className="text-2xl font-semibold">{accounts.length}</CardContent></Card>
-        <Card><CardHeader><CardTitle>Teachers</CardTitle></CardHeader><CardContent className="text-2xl font-semibold">{teacherCount}</CardContent></Card>
-        <Card><CardHeader><CardTitle>Students</CardTitle></CardHeader><CardContent className="text-2xl font-semibold">{studentCount}</CardContent></Card>
-        <Card><CardHeader><CardTitle>Subjects</CardTitle></CardHeader><CardContent className="text-2xl font-semibold">{subjectsCount}</CardContent></Card>
+        <StatCard title="Total Accounts" value={accounts.length} accent="indigo" />
+        <StatCard title="Teachers" value={teacherCount} accent="violet" />
+        <StatCard title="Students" value={studentCount} accent="sky" />
+        <StatCard title="Subjects" value={subjectsCount} accent="emerald" />
       </div>
-      <Card className="mt-4">
-        <CardHeader><CardTitle>System Overview</CardTitle></CardHeader>
-        <CardContent className="space-y-2 text-sm text-muted-foreground">
-          <p>Superadmin accounts: {superadminCount}</p>
-          <p>Use Accounts Management to update user roles.</p>
+      <Card className="mt-6">
+        <div className="h-1 bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-500" />
+        <CardHeader>
+          <CardTitle>System Overview</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">Admin accounts: {adminCount}</p>
+          <p className="text-sm text-muted-foreground">Manage user roles and permissions from accounts management.</p>
           <Link to="/superadmin/accounts" className={cn(buttonVariants({ variant: "outline", size: "sm" }))}>
             Go to Accounts Management
           </Link>

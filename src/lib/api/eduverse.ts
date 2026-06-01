@@ -48,8 +48,11 @@ export type UserProfile = {
 export type AccountRecord = UserProfile;
 
 export async function fetchUserProfile(userId: string) {
+  console.log("fetchUserProfile start", { userId });
   const { data, error } = await supabase.from("users").select("*").eq("id", userId).single();
+  console.log("fetchUserProfile result", { data, error });
   if (error) throw error;
+  if (!data) throw new Error("User profile not found.");
   return data as UserProfile;
 }
 
@@ -61,6 +64,16 @@ export async function fetchAllAccounts() {
 
 export async function updateAccountRole(userId: string, role: UserRole) {
   const { error } = await supabase.from("users").update({ role }).eq("id", userId);
+  if (error) throw error;
+}
+
+export async function upsertUserProfile(payload: {
+  id: string;
+  full_name: string;
+  email: string | null;
+  role: UserRole;
+}) {
+  const { error } = await supabase.from("users").upsert(payload, { onConflict: "id" });
   if (error) throw error;
 }
 

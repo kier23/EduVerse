@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { AppShell } from "@/layouts/app-shell";
 import { createActivity, fetchTeacherSubjects, type Subject, uploadMaterial } from "@/lib/api/eduverse";
 import { useAuth } from "@/providers/auth-provider";
+import { cn } from "@/lib/utils";
 
 export function ManageSubjectsPage() {
   const { user } = useAuth();
@@ -58,21 +59,31 @@ export function ManageSubjectsPage() {
 
   return (
     <AppShell title="Manage Subjects">
-      <div className="mb-4">
-        <label className="mb-2 block text-sm font-medium">Subject</label>
-        <select
-          value={selectedSubjectId}
-          onChange={(event) => setSelectedSubjectId(event.target.value)}
-          className="h-9 rounded-md border bg-transparent px-3 text-sm"
-        >
-          {subjects.map((subject) => (
-            <option key={subject.id} value={subject.id}>{subject.subject_code} - {subject.subject_name}</option>
-          ))}
-        </select>
-      </div>
-      <div className="grid gap-4 md:grid-cols-2">
+      <Card className="mb-6">
+        <CardContent className="pt-6">
+          <label className="mb-2 block text-sm font-medium text-muted-foreground">Select subject</label>
+          <select
+            value={selectedSubjectId}
+            onChange={(event) => setSelectedSubjectId(event.target.value)}
+            className={cn(
+              "h-10 w-full rounded-xl border border-indigo-100 bg-white/80 px-3 text-sm shadow-sm backdrop-blur-sm",
+              "focus-visible:border-indigo-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/30",
+            )}
+          >
+            {subjects.map((subject) => (
+              <option key={subject.id} value={subject.id}>
+                {subject.subject_code} — {subject.subject_name}
+              </option>
+            ))}
+          </select>
+        </CardContent>
+      </Card>
+      <div className="grid gap-6 md:grid-cols-2">
         <Card>
-          <CardHeader><CardTitle>Create New Activity</CardTitle></CardHeader>
+          <div className="h-1 bg-gradient-to-r from-indigo-500 to-violet-500" />
+          <CardHeader>
+            <CardTitle>Create New Activity</CardTitle>
+          </CardHeader>
           <CardContent>
             <form className="space-y-3" onSubmit={onCreateActivity}>
               <Input value={activityTitle} onChange={(event) => setActivityTitle(event.target.value)} placeholder="Activity title" required />
@@ -82,7 +93,10 @@ export function ManageSubjectsPage() {
           </CardContent>
         </Card>
         <Card>
-          <CardHeader><CardTitle>Upload Materials</CardTitle></CardHeader>
+          <div className="h-1 bg-gradient-to-r from-violet-500 to-purple-500" />
+          <CardHeader>
+            <CardTitle>Upload Materials</CardTitle>
+          </CardHeader>
           <CardContent>
             <form className="space-y-3" onSubmit={onUploadMaterial}>
               <Input value={materialTitle} onChange={(event) => setMaterialTitle(event.target.value)} placeholder="Material title" required />
@@ -92,7 +106,7 @@ export function ManageSubjectsPage() {
           </CardContent>
         </Card>
       </div>
-      {status ? <p className="mt-3 text-sm text-muted-foreground">{status}</p> : null}
+      {status ? <p className="mt-4 rounded-xl bg-emerald-50 px-4 py-2 text-sm text-emerald-700">{status}</p> : null}
     </AppShell>
   );
 }
