@@ -47,7 +47,7 @@ export function RoleGuard({ allowedRoles }: { allowedRoles: UserRole[] }) {
 }
 
 export function RequireCompleteProfile() {
-  const { user, role, profile, loading } = useAuth();
+  const { user, loading } = useAuth();
 
   if (loading) {
     return <LoadingScreen message="Preparing account..." />;

@@ -3,6 +3,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -44,6 +45,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const userIdRef = useRef<string | null>(null);
+  const accessTokenRef = useRef<string | null>(null);
+
+  const updateSession = (nextSession: Session | null) => {
+    userIdRef.current = nextSession?.user.id ?? null;
+    accessTokenRef.current = nextSession?.access_token ?? null;
+    setSession(nextSession);
+    setUser(nextSession?.user ?? null);
+  };
 
   const loadProfile = async (currentUser: User | null) => {
     console.log("loadProfile start", currentUser?.id);
@@ -73,8 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const bootstrap = async () => {
       const { data } = await supabase.auth.getSession();
       if (!isMounted) return;
-      setSession(data.session);
-      setUser(data.session?.user ?? null);
+      updateSession(data.session);
       await loadProfile(data.session?.user ?? null);
       if (isMounted) setLoading(false);
     };
@@ -82,10 +91,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     bootstrap();
 
     const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (_event, nextSession) => {
+      async (event, nextSession) => {
+        if (event === "INITIAL_SESSION") {
+          return;
+        }
+
+        if (event === "TOKEN_REFRESHED" || event === "USER_UPDATED") {
+          updateSession(nextSession);
+          return;
+        }
+
+        const isSameSignedInSession =
+          event === "SIGNED_IN" &&
+          nextSession?.user.id === userIdRef.current &&
+          nextSession?.access_token === accessTokenRef.current;
+
+        if (isSameSignedInSession) {
+          return;
+        }
+
         setLoading(true);
-        setSession(nextSession);
-        setUser(nextSession?.user ?? null);
+        updateSession(nextSession);
         await loadProfile(nextSession?.user ?? null);
         setLoading(false);
       },

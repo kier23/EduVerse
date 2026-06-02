@@ -37,6 +37,10 @@ export type EventItem = {
   subject_id: string | null;
 };
 
+type EnrollmentSubjectRow = {
+  subject_id: Subject | Subject[] | null;
+};
+
 export type UserProfile = {
   id: string;
   full_name: string | null;
@@ -87,10 +91,68 @@ export async function fetchTeacherSubjects(teacherId: string) {
   return (data ?? []) as Subject[];
 }
 
-export async function fetchStudentSubjects() {
-  const { data, error } = await supabase.from("subjects").select("*").order("created_at");
+export async function fetchStudentSubjects(studentId?: string) {
+  if (!studentId) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from("enrollments")
+    .select("subject_id(*)")
+    .eq("student_id", studentId)
+    .order("enrolled_at", { ascending: false });
+
   if (error) throw error;
-  return (data ?? []) as Subject[];
+
+  return ((data ?? []) as EnrollmentSubjectRow[])
+    .flatMap((row) => row.subject_id ?? [])
+    .filter((subject): subject is Subject => Boolean(subject));
+}
+
+export async function createSubject(payload: {
+  teacher_id: string;
+  subject_code: string;
+  subject_name: string;
+  description: string;
+}) {
+  const { data, error } = await supabase.from("subjects").insert(payload).select().single();
+  if (error) throw error;
+  return data as Subject;
+}
+
+export async function enrollStudentInSubject(studentId: string, classCode: string) {
+  const normalizedCode = classCode.trim().toUpperCase();
+
+  const { data: subjectData, error: subjectError } = await supabase
+    .from("subjects")
+    .select("id, subject_name")
+    .eq("subject_code", normalizedCode)
+    .single();
+
+  if (subjectError || !subjectData) {
+    throw new Error("Subject not found with that class code.");
+  }
+
+  const { data: existingEnrollment, error: existingError } = await supabase
+    .from("enrollments")
+    .select("id")
+    .eq("student_id", studentId)
+    .eq("subject_id", subjectData.id)
+    .maybeSingle();
+
+  if (existingError) throw existingError;
+  if (existingEnrollment) {
+    throw new Error("You are already enrolled in this subject.");
+  }
+
+  const { error } = await supabase.from("enrollments").insert({
+    student_id: studentId,
+    subject_id: subjectData.id,
+  });
+
+  if (error) throw error;
+
+  return subjectData as Pick<Subject, "id" | "subject_name">;
 }
 
 export async function fetchSubjectActivities(subjectId: string) {

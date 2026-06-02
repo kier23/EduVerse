@@ -3,7 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AuthCard } from "@/components/layout/auth-card";
-import { fetchUserProfile } from "@/lib/api/eduverse";
 import { dashboardPathForRole } from "@/lib/auth-redirect";
 import { supabase } from "@/lib/supabase";
 import type { UserRole } from "@/types/auth";

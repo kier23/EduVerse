@@ -16,6 +16,7 @@ import { SuperadminDashboardPage } from "@/pages/superadmin/dashboard-page";
 import { TeacherCalendarPage } from "@/pages/teacher/calendar-page";
 import { TeacherDashboardPage } from "@/pages/teacher/dashboard-page";
 import { ManageSubjectsPage } from "@/pages/teacher/manage-subjects-page";
+import { TeacherSubjectPage } from "@/pages/teacher/subject-page";
 
 function App() {
   return (
@@ -36,6 +37,10 @@ function App() {
               <Route
                 path="/teacher/subjects"
                 element={<ManageSubjectsPage />}
+              />
+              <Route
+                path="/teacher/subjects/:subjectId"
+                element={<TeacherSubjectPage />}
               />
               <Route
                 path="/teacher/calendar"
