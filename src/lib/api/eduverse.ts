@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import type { UserRole } from "@/types/auth";
 
+
 export type Subject = {
   id: string;
   subject_name: string | null;
@@ -52,7 +53,6 @@ export type UserProfile = {
 export type AccountRecord = UserProfile;
 
 export async function fetchUserProfile(userId: string) {
-  console.log("fetchUserProfile start", { userId });
   const { data, error } = await supabase.from("users").select("*").eq("id", userId).single();
   console.log("fetchUserProfile result", { data, error });
   if (error) throw error;
@@ -220,4 +220,35 @@ export async function createEvent(payload: {
 }) {
   const { error } = await supabase.from("events").insert(payload);
   if (error) throw error;
+}
+
+export async function deleteEvent(eventId: string) {
+  const { error } = await supabase
+    .from("events")
+    .delete()
+    .eq("id", eventId);
+
+  if (error) throw error;
+}
+
+export async function uploadAvatar(userId: string, file: File) {
+  const fileExt = file.name.split(".").pop();
+  const filePath =
+  `${userId}/avatar-${Date.now()}.${fileExt}`;
+
+  const { error } = await supabase.storage
+    .from("avatar")
+    .upload(filePath, file, {
+      upsert: true,
+    });
+
+  if (error) {
+    throw error;
+  }
+
+  const { data } = supabase.storage
+    .from("avatar")
+    .getPublicUrl(filePath);
+
+  return data.publicUrl;
 }

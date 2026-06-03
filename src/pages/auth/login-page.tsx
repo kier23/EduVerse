@@ -7,27 +7,6 @@ import { dashboardPathForRole } from "@/lib/auth-redirect";
 import { supabase } from "@/lib/supabase";
 import type { UserRole } from "@/types/auth";
 
-const withTimeout = async <T,>(
-  promise: Promise<T>,
-  ms: number,
-  name: string,
-): Promise<T> => {
-  let timeoutId: ReturnType<typeof setTimeout> | undefined;
-  const timeoutPromise = new Promise<never>((_, reject) => {
-    timeoutId = setTimeout(
-      () => reject(new Error(`${name} timed out after ${ms}ms`)),
-      ms,
-    );
-  });
-  try {
-    return (await Promise.race([promise, timeoutPromise])) as T;
-  } finally {
-    if (timeoutId !== undefined) {
-      clearTimeout(timeoutId);
-    }
-  }
-};
-
 export function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -37,48 +16,29 @@ export function LoginPage() {
 
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    console.log("Login submit", { email });
     setSubmitting(true);
     setError("");
     try {
-      console.log("Before signIn");
-      const { data, error: signInError } = await withTimeout(
-        supabase.auth.signInWithPassword({ email, password }),
-        15000,
-        "supabase.auth.signInWithPassword",
-      );
-      console.log("after signIn");
-      console.log("Sign in response", { data, signInError });
-      if (signInError) throw signInError;
-      if (!data.user) {
-        console.error("Login response missing user", data);
-        throw new Error("User not found after login.");
-      }
+      const { data, error: signInError } =
+        await supabase.auth.signInWithPassword({ email, password });
 
-      console.log("User metadata", {
-        user_metadata: data.user.user_metadata,
-        app_metadata: data.user.app_metadata,
-      });
+      if (signInError) throw signInError;
+      if (!data.user) throw new Error("User not found after login.");
+
+      // Navigate immediately using metadata role — AuthProvider will load
+      // the full profile in the background via the SIGNED_IN event.
       const roleFromMetadata = (data.user.user_metadata?.role ??
         data.user.app_metadata?.role) as UserRole | null;
-      if (roleFromMetadata) {
-        console.log("Navigating using metadata role", {
-          role: roleFromMetadata,
-          path: dashboardPathForRole(roleFromMetadata),
-        });
-        navigate(dashboardPathForRole(roleFromMetadata));
-        return;
-      }
 
-      console.log("Fetching profile for user", data.user.id);
-      navigate("/");
-      return;
+      navigate(
+        roleFromMetadata ? dashboardPathForRole(roleFromMetadata) : "/",
+        { replace: true },
+      );
     } catch (caught) {
       console.error("Login failed", caught);
       setError(caught instanceof Error ? caught.message : "Login failed.");
     } finally {
       setSubmitting(false);
-      console.log("Login submit finished");
     }
   };
 

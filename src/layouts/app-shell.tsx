@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   LogOut,
@@ -8,14 +8,29 @@ import {
   BookOpen,
   Calendar,
   Users,
-  UserCog,
+  Pencil,
+  Camera,
+  Check,
+  Loader2,
 } from "lucide-react";
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { GradientBackground } from "@/components/layout/gradient-background";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/providers/auth-provider";
 import { supabase } from "@/lib/supabase";
-import { fetchTeacherSubjects, type Subject } from "@/lib/api/eduverse";
+import {
+  fetchTeacherSubjects,
+  uploadAvatar,
+  type Subject,
+} from "@/lib/api/eduverse";
 
 export function AppShell({
   title,
@@ -24,7 +39,7 @@ export function AppShell({
   title: string;
   children: ReactNode;
 }) {
-  const { profile, role, user } = useAuth();
+  const { profile, role, user, refreshProfile } = useAuth();
   const location = useLocation();
   const [teacherSubjects, setTeacherSubjects] = useState<Subject[]>([]);
 
@@ -42,6 +57,7 @@ export function AppShell({
   };
 
   const isActive = (path: string) => location.pathname === path;
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const displayName =
     profile?.full_name ??
     user?.user_metadata?.full_name ??
@@ -62,6 +78,88 @@ export function AppShell({
     const saved = localStorage.getItem("sidebarCollapsed");
     return saved === "true";
   });
+
+  // Edit profile state
+  const [fullName, setFullName] = useState(displayName);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(
+    avatarUrl ?? null,
+  );
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setFullName(displayName);
+    setAvatarPreview(avatarUrl ?? null);
+  }, [displayName, avatarUrl]);
+  useEffect(() => {
+    if (user) {
+      refreshProfile();
+    }
+  }, [user]);
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAvatarFile(file);
+    setAvatarPreview(URL.createObjectURL(file));
+  };
+
+  const handleSaveProfile = async () => {
+    if (!user) return;
+
+    setIsSaving(true);
+
+    try {
+      const updates: {
+        full_name?: string;
+        avatar_url?: string | null;
+      } = {};
+
+      // Only update name if it changed
+      if (fullName !== displayName) {
+        updates.full_name = fullName;
+      }
+
+      // Only update avatar if a new file was selected
+      if (avatarFile) {
+        const newAvatarUrl = await uploadAvatar(user.id, avatarFile);
+        updates.avatar_url = newAvatarUrl;
+      }
+
+      // Nothing changed
+      if (Object.keys(updates).length === 0) {
+        setIsProfileOpen(false);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("users")
+        .update(updates)
+        .eq("id", user.id)
+        .select()
+        .single();
+
+      console.log("Updated row:", data);
+
+      if (error) throw error;
+
+      setSaveSuccess(true);
+      setAvatarFile(null);
+
+      await refreshProfile();
+
+      setTimeout(() => {
+        setSaveSuccess(false);
+        setIsProfileOpen(false);
+      }, 1200);
+    } catch (err) {
+      console.error("Failed to save profile:", err);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   useEffect(() => {
     localStorage.setItem("sidebarCollapsed", String(isCollapsed));
@@ -303,7 +401,10 @@ export function AppShell({
                 </button>
               )}
 
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-indigo-100 text-sm font-semibold text-indigo-700">
+              <div
+                className="group relative flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-indigo-100 text-sm font-semibold text-indigo-700"
+                onClick={() => setIsProfileOpen(true)}
+              >
                 {avatarUrl ? (
                   <img
                     src={avatarUrl}
@@ -313,6 +414,11 @@ export function AppShell({
                 ) : (
                   initials || "U"
                 )}
+
+                {/* Hover overlay */}
+                <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
+                  <Pencil className="h-4 w-4 text-white" />
+                </div>
               </div>
 
               {!isCollapsed && (
@@ -342,6 +448,155 @@ export function AppShell({
               )}
             </div>
           </div>
+          <Dialog
+            open={isProfileOpen}
+            onOpenChange={(open) => {
+              setIsProfileOpen(open);
+              if (!open) {
+                // Reset unsaved changes on close
+                setFullName(displayName);
+                setAvatarPreview(avatarUrl ?? null);
+                setAvatarFile(null);
+                setSaveSuccess(false);
+              }
+            }}
+          >
+            <DialogContent className="sm:max-w-sm overflow-hidden p-0">
+              {/* Top gradient bar */}
+              <div className="h-1 bg-gradient-to-r from-indigo-500 via-violet-500 to-sky-500" />
+
+              <div className="p-5">
+                <DialogHeader className="mb-5">
+                  <DialogTitle className="text-base font-semibold">
+                    Edit Profile
+                  </DialogTitle>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Update your name and profile photo
+                  </p>
+                </DialogHeader>
+
+                <div className="space-y-5">
+                  {/* Avatar upload */}
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="relative">
+                      <div className="h-20 w-20 overflow-hidden rounded-full bg-indigo-100 ring-4 ring-white shadow-md">
+                        {avatarPreview ? (
+                          <img
+                            src={avatarPreview}
+                            alt="Avatar"
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center text-xl font-semibold text-indigo-600">
+                            {initials || "U"}
+                          </div>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="absolute bottom-0 right-0 flex h-7 w-7 items-center justify-center rounded-full bg-indigo-500 text-white shadow-md transition hover:bg-indigo-600"
+                      >
+                        <Camera className="h-3.5 w-3.5" />
+                      </button>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleAvatarChange}
+                      />
+                    </div>
+                    {avatarFile && (
+                      <p className="text-xs text-indigo-600 font-medium">
+                        {avatarFile.name}
+                      </p>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="text-xs text-muted-foreground underline underline-offset-2 hover:text-indigo-500 transition"
+                    >
+                      Change photo
+                    </button>
+                  </div>
+
+                  {/* Full name */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      Full Name
+                    </label>
+                    <Input
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      placeholder="Enter your full name"
+                      className="bg-slate-50/80"
+                    />
+                  </div>
+
+                  {/* Email (read-only) */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      Email
+                    </label>
+                    <Input
+                      value={user?.email ?? ""}
+                      disabled
+                      className="bg-slate-50/80 text-muted-foreground"
+                    />
+                  </div>
+
+                  {/* Role (read-only) */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      Role
+                    </label>
+                    <div className="flex h-9 items-center rounded-md border border-input bg-slate-50/80 px-3">
+                      <span className="capitalize text-sm text-muted-foreground">
+                        {role ?? "—"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <DialogFooter className="px-5 pb-5 pt-0 border-t-0 bg-transparent -mx-0 -mb-0 rounded-none">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsProfileOpen(false)}
+                  disabled={isSaving}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleSaveProfile}
+                  disabled={isSaving || saveSuccess}
+                  className={cn(
+                    "min-w-[110px] transition-all",
+                    saveSuccess
+                      ? "bg-emerald-500 hover:bg-emerald-500 text-white"
+                      : "bg-indigo-500 hover:bg-indigo-600 text-white",
+                  )}
+                >
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                      Saving…
+                    </>
+                  ) : saveSuccess ? (
+                    <>
+                      <Check className="mr-1.5 h-3.5 w-3.5" />
+                      Saved!
+                    </>
+                  ) : (
+                    "Save Changes"
+                  )}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </aside>
 
         <main

@@ -15,7 +15,7 @@ import { AccountsManagementPage } from "@/pages/superadmin/accounts-management-p
 import { SuperadminDashboardPage } from "@/pages/superadmin/dashboard-page";
 import { TeacherCalendarPage } from "@/pages/teacher/calendar-page";
 import { TeacherDashboardPage } from "@/pages/teacher/dashboard-page";
-import { ManageSubjectsPage } from "@/pages/teacher/manage-subjects-page";
+import { ManageSubjectsPage } from "@/pages/teacher/create-subject-page";
 import { TeacherSubjectPage } from "@/pages/teacher/subject-page";
 
 function App() {

@@ -18,11 +18,13 @@ function LoadingScreen({ message }: { message: string }) {
   );
 }
 
+// Only this guard checks loading. By the time it clears, both session AND
+// profile are resolved — so child guards never see a null role flash.
 export function ProtectedRoute() {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return <LoadingScreen message="Checking session..." />;
+    return <LoadingScreen message="Loading..." />;
   }
 
   if (!user) {
@@ -32,12 +34,9 @@ export function ProtectedRoute() {
   return <Outlet />;
 }
 
+// Never checks loading — ProtectedRoute already guarantees it's false here.
 export function RoleGuard({ allowedRoles }: { allowedRoles: UserRole[] }) {
-  const { role, loading } = useAuth();
-
-  if (loading) {
-    return <LoadingScreen message="Checking permissions..." />;
-  }
+  const { role } = useAuth();
 
   if (!role || !allowedRoles.includes(role)) {
     return <Navigate to="/unauthorized" replace />;
@@ -47,11 +46,7 @@ export function RoleGuard({ allowedRoles }: { allowedRoles: UserRole[] }) {
 }
 
 export function RequireCompleteProfile() {
-  const { user, loading } = useAuth();
-
-  if (loading) {
-    return <LoadingScreen message="Preparing account..." />;
-  }
+  const { user } = useAuth();
 
   if (!user) {
     return <Navigate to="/login" replace />;

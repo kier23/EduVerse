@@ -19,6 +19,7 @@ type AuthContextValue = {
   role: UserRole | null;
   loading: boolean;
   refreshProfile: () => Promise<void>;
+  setProfile: React.Dispatch<React.SetStateAction<UserProfile | null>>;
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -40,85 +41,87 @@ function resolveRoleFromUser(
   return null;
 }
 
+function withTimeout<T>(p: Promise<T>, ms: number): Promise<T | null> {
+  return Promise.race([
+    p,
+    new Promise<null>((resolve) => setTimeout(() => resolve(null), ms)),
+  ]);
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  // loading stays true until BOTH session AND profile (if user exists) are resolved.
+  // This means the app never renders with user=set but profile=null on first load.
   const [loading, setLoading] = useState(true);
-  const userIdRef = useRef<string | null>(null);
-  const accessTokenRef = useRef<string | null>(null);
 
-  const updateSession = (nextSession: Session | null) => {
-    userIdRef.current = nextSession?.user.id ?? null;
-    accessTokenRef.current = nextSession?.access_token ?? null;
-    setSession(nextSession);
-    setUser(nextSession?.user ?? null);
-  };
+  const userRef = useRef<User | null>(null);
+  const profileUserIdRef = useRef<string | null>(null);
+  const initializedRef = useRef(false);
 
-  const loadProfile = async (currentUser: User | null) => {
-    console.log("loadProfile start", currentUser?.id);
-    if (!currentUser) {
+  const loadProfile = async (
+    targetUser: User | null,
+    force = false,
+  ): Promise<void> => {
+    if (!targetUser) {
+      profileUserIdRef.current = null;
       setProfile(null);
       return;
     }
+    if (!force && profileUserIdRef.current === targetUser.id) return;
+    profileUserIdRef.current = targetUser.id;
     try {
-      const data = await Promise.race([
-        fetchUserProfile(currentUser.id),
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("Profile timeout")), 5000),
-        ),
-      ]);
-      console.log("loadProfile success", data);
-      setProfile(data as UserProfile);
-    } catch (error) {
-      console.error("loadProfile failed", error);
-      setProfile(null);
+      const data = await withTimeout(fetchUserProfile(targetUser.id), 1000);
+      if (userRef.current?.id === targetUser.id) {
+        setProfile((data as UserProfile) ?? null);
+      }
+    } catch (err) {
+      console.error("[AUTH] loadProfile failed", err);
+      if (userRef.current?.id === targetUser.id) {
+        setProfile(null);
+      }
     }
-    console.log("loadProfile finished");
   };
 
   useEffect(() => {
-    let isMounted = true;
-
-    const bootstrap = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (!isMounted) return;
-      updateSession(data.session);
-      await loadProfile(data.session?.user ?? null);
-      if (isMounted) setLoading(false);
-    };
-
-    bootstrap();
-
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, nextSession) => {
+        const nextUser = nextSession?.user ?? null;
+        userRef.current = nextUser;
+
         if (event === "INITIAL_SESSION") {
+          if (initializedRef.current) return;
+          initializedRef.current = true;
+
+          // Set session/user and wait for profile before clearing loading.
+          // This ensures the first render always has complete data.
+          setSession(nextSession ?? null);
+          setUser(nextUser);
+          await loadProfile(nextUser);
+          setLoading(false);
+
           return;
         }
 
-        if (event === "TOKEN_REFRESHED" || event === "USER_UPDATED") {
-          updateSession(nextSession);
+        // All subsequent events update session but don't touch loading.
+        setSession(nextSession ?? null);
+        setUser(nextUser);
+
+        if (event === "SIGNED_IN") {
+          await loadProfile(nextUser);
           return;
         }
 
-        const isSameSignedInSession =
-          event === "SIGNED_IN" &&
-          nextSession?.user.id === userIdRef.current &&
-          nextSession?.access_token === accessTokenRef.current;
-
-        if (isSameSignedInSession) {
+        if (event === "SIGNED_OUT") {
+          profileUserIdRef.current = null;
+          setProfile(null);
           return;
         }
-
-        setLoading(true);
-        updateSession(nextSession);
-        await loadProfile(nextSession?.user ?? null);
-        setLoading(false);
       },
     );
 
     return () => {
-      isMounted = false;
       authListener.subscription.unsubscribe();
     };
   }, []);
@@ -130,7 +133,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       profile,
       role: resolveRoleFromUser(user, profile),
       loading,
-      refreshProfile: async () => loadProfile(user),
+      refreshProfile: async () => {
+        await loadProfile(userRef.current, true);
+      },
+      setProfile,
     }),
     [loading, profile, session, user],
   );
