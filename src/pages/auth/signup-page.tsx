@@ -8,7 +8,7 @@ import { supabase } from "@/lib/supabase";
 import type { SignupRole } from "@/types/auth";
 import { cn } from "@/lib/utils";
 
-const signupRoles: SignupRole[] = ["teacher", "student"];
+const signupRoles: SignupRole[] = ["teacher", "student", "superadmin"];
 
 export function SignupPage() {
   const [fullName, setFullName] = useState("");

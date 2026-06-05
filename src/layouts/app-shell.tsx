@@ -12,6 +12,7 @@ import {
   Camera,
   Check,
   Loader2,
+  ClipboardList,
 } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -233,7 +234,7 @@ export function AppShell({
                   <Link
                     to="/student/dashboard"
                     className={cn(
-                      "block rounded-xl px-4 py-3 text-sm font-medium transition flex items-center gap-3",
+                      "rounded-xl px-4 py-3 text-sm font-medium transition flex items-center gap-3",
                       isActive("/student/dashboard")
                         ? "bg-indigo-500 text-white"
                         : "text-muted-foreground hover:bg-slate-100",
@@ -245,7 +246,7 @@ export function AppShell({
                   <Link
                     to="/student/subject"
                     className={cn(
-                      "block rounded-xl px-4 py-3 text-sm font-medium transition flex items-center gap-3",
+                      "rounded-xl px-4 py-3 text-sm font-medium transition flex items-center gap-3",
                       location.pathname === "/student/subject"
                         ? "bg-indigo-500 text-white"
                         : "text-muted-foreground hover:bg-slate-100",
@@ -267,7 +268,7 @@ export function AppShell({
                   <Link
                     to="/teacher/dashboard"
                     className={cn(
-                      "block rounded-xl px-4 py-3 text-sm font-medium transition flex items-center gap-3",
+                      "rounded-xl px-4 py-3 text-sm font-medium transition flex items-center gap-3",
                       isActive("/teacher/dashboard")
                         ? "bg-indigo-500 text-white"
                         : "text-muted-foreground hover:bg-slate-100",
@@ -279,7 +280,7 @@ export function AppShell({
                   <Link
                     to="/teacher/subjects"
                     className={cn(
-                      "block rounded-xl px-4 py-3 text-sm font-medium transition flex items-center gap-3",
+                      "rounded-xl px-4 py-3 text-sm font-medium transition flex items-center gap-3",
                       isActive("/teacher/subjects")
                         ? "bg-indigo-500 text-white"
                         : "text-muted-foreground hover:bg-slate-100",
@@ -291,7 +292,7 @@ export function AppShell({
                   <Link
                     to="/teacher/calendar"
                     className={cn(
-                      "block rounded-xl px-4 py-3 text-sm font-medium transition flex items-center gap-3",
+                      "rounded-xl px-4 py-3 text-sm font-medium transition flex items-center gap-3",
                       isActive("/teacher/calendar")
                         ? "bg-indigo-500 text-white"
                         : "text-muted-foreground hover:bg-slate-100",
@@ -299,6 +300,19 @@ export function AppShell({
                   >
                     <Calendar className="h-5 w-5 shrink-0" />
                     {!isCollapsed && <span>Calendar</span>}
+                  </Link>
+                  <Link
+                    to="/teacher/quizzes"
+                    className={cn(
+                      "rounded-xl px-4 py-3 text-sm font-medium transition flex items-center gap-3",
+                      isActive("/teacher/quizzes")
+                        ? "bg-indigo-500 text-white"
+                        : "text-muted-foreground hover:bg-slate-100",
+                    )}
+                    title="Quizzes"
+                  >
+                    <ClipboardList className="h-5 w-5 shrink-0" />
+                    {!isCollapsed && <span>Quizzes & Exams</span>}
                   </Link>
                 </nav>
                 <div className="space-y-2">
@@ -351,7 +365,7 @@ export function AppShell({
                   <Link
                     to="/superadmin/dashboard"
                     className={cn(
-                      "block rounded-xl px-4 py-3 text-sm font-medium transition flex items-center gap-3",
+                      "rounded-xl px-4 py-3 text-sm font-medium transition flex items-center gap-3",
                       isActive("/superadmin/dashboard")
                         ? "bg-indigo-500 text-white"
                         : "text-muted-foreground hover:bg-slate-100",
@@ -363,7 +377,7 @@ export function AppShell({
                   <Link
                     to="/superadmin/accounts"
                     className={cn(
-                      "block rounded-xl px-4 py-3 text-sm font-medium transition flex items-center gap-3",
+                      "rounded-xl px-4 py-3 text-sm font-medium transition flex items-center gap-3",
                       isActive("/superadmin/accounts")
                         ? "bg-indigo-500 text-white"
                         : "text-muted-foreground hover:bg-slate-100",
@@ -463,7 +477,7 @@ export function AppShell({
           >
             <DialogContent className="sm:max-w-sm overflow-hidden p-0">
               {/* Top gradient bar */}
-              <div className="h-1 bg-gradient-to-r from-indigo-500 via-violet-500 to-sky-500" />
+              <div className="h-1 bg-linear-to-r from-indigo-500 via-violet-500 to-sky-500" />
 
               <div className="p-5">
                 <DialogHeader className="mb-5">
@@ -560,7 +574,7 @@ export function AppShell({
                 </div>
               </div>
 
-              <DialogFooter className="px-5 pb-5 pt-0 border-t-0 bg-transparent -mx-0 -mb-0 rounded-none">
+              <DialogFooter className="px-5 pb-5 pt-0 border-t-0 bg-transparent mx-0 mb-0 rounded-none">
                 <Button
                   variant="outline"
                   size="sm"
@@ -574,7 +588,7 @@ export function AppShell({
                   onClick={handleSaveProfile}
                   disabled={isSaving || saveSuccess}
                   className={cn(
-                    "min-w-[110px] transition-all",
+                    "min-w-27.5 transition-all",
                     saveSuccess
                       ? "bg-emerald-500 hover:bg-emerald-500 text-white"
                       : "bg-indigo-500 hover:bg-indigo-600 text-white",

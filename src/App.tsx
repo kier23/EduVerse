@@ -17,6 +17,9 @@ import { TeacherCalendarPage } from "@/pages/teacher/calendar-page";
 import { TeacherDashboardPage } from "@/pages/teacher/dashboard-page";
 import { ManageSubjectsPage } from "@/pages/teacher/create-subject-page";
 import { TeacherSubjectPage } from "@/pages/teacher/subject-page";
+import QuizzesPage from "@/pages/teacher/quizzes/page";
+import QuizEditorPage from "@/pages/teacher/quizzes/[id]/edit";
+import QuizResponsesPage from "@/pages/teacher/quizzes/[id]/responses";
 
 function App() {
   return (
@@ -45,6 +48,15 @@ function App() {
               <Route
                 path="/teacher/calendar"
                 element={<TeacherCalendarPage />}
+              />
+              <Route path="/teacher/quizzes" element={<QuizzesPage />} />
+              <Route
+                path="/teacher/quizzes/:id/edit"
+                element={<QuizEditorPage />}
+              />
+              <Route
+                path="/teacher/quizzes/:id/responses"
+                element={<QuizResponsesPage />}
               />
             </Route>
             <Route element={<RoleGuard allowedRoles={["student"]} />}>
