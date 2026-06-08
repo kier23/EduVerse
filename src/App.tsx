@@ -11,12 +11,13 @@ import { LandingPage } from "@/pages/public/landing-page";
 import { UnauthorizedPage } from "@/pages/public/unauthorized-page";
 import { StudentDashboardPage } from "@/pages/student/dashboard-page";
 import { StudentSubjectPage } from "@/pages/student/subject-page";
+import { StudentQuizPage } from "@/pages/student/quiz-page";
+import { StudentCalendarPage } from "@/pages/student/calendar-page";
 import { AccountsManagementPage } from "@/pages/superadmin/accounts-management-page";
 import { SuperadminDashboardPage } from "@/pages/superadmin/dashboard-page";
 import { TeacherCalendarPage } from "@/pages/teacher/calendar-page";
 import { TeacherDashboardPage } from "@/pages/teacher/dashboard-page";
-import { ManageSubjectsPage } from "@/pages/teacher/create-subject-page";
-import { TeacherSubjectPage } from "@/pages/teacher/subject-page";
+import { TeacherSubjectPage } from "@/pages/teacher/subjects/subject-page";
 import QuizzesPage from "@/pages/teacher/quizzes/page";
 import QuizEditorPage from "@/pages/teacher/quizzes/[id]/edit";
 import QuizResponsesPage from "@/pages/teacher/quizzes/[id]/responses";
@@ -39,7 +40,7 @@ function App() {
               />
               <Route
                 path="/teacher/subjects"
-                element={<ManageSubjectsPage />}
+                element={<TeacherSubjectPage />}
               />
               <Route
                 path="/teacher/subjects/:subjectId"
@@ -64,7 +65,18 @@ function App() {
                 path="/student/dashboard"
                 element={<StudentDashboardPage />}
               />
-              <Route path="/student/subject" element={<StudentSubjectPage />} />
+              <Route
+                path="/student/subject/:subjectId"
+                element={<StudentSubjectPage />}
+              />
+              <Route
+                path="/student/quiz/:quizId"
+                element={<StudentQuizPage />}
+              />
+              <Route
+                path="/student/calendar"
+                element={<StudentCalendarPage />}
+              />
             </Route>
             <Route
               element={<RoleGuard allowedRoles={["admin", "superadmin"]} />}

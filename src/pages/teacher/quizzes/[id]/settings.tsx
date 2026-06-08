@@ -39,7 +39,7 @@ interface QuizSettingsPanelProps {
   quizId: string;
   quiz: Quiz | null;
   onClose: () => void;
-  onSaved: (quiz: Quiz) => void;
+  onSaved: (quiz: Quiz, settings: QuizSettings) => void;
 }
 
 export function QuizSettingsPanel({
@@ -116,13 +116,14 @@ export function QuizSettingsPanel({
       await upsertQuizSettings(quizId, settings);
 
       setSaved(true);
-      onSaved({
+      const updatedQuiz = {
         ...quiz!,
         time_limit: timeLimit ? Number(timeLimit) : null,
         attempts_allowed: attemptsAllowed ? Number(attemptsAllowed) : null,
         welcome_message: welcomeMessage || null,
         banner_url: finalBannerUrl || null,
-      });
+      };
+      onSaved(updatedQuiz, settings);
 
       setTimeout(() => setSaved(false), 2000);
     } catch (err) {

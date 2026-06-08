@@ -290,14 +290,34 @@ export async function createActivity(payload: {
   if (error) throw error;
 }
 
+// Uploads the file to Supabase Storage (materials bucket) and inserts a
+// row into the materials table with the resulting public URL.
 export async function uploadMaterial(payload: {
   subject_id: string;
   teacher_id: string;
   title: string;
   description: string;
-  file_url: string;
+  file: File;
 }) {
-  const { error } = await supabase.from("materials").insert(payload);
+  const ext = payload.file.name.split(".").pop();
+  const filePath = `${payload.subject_id}/${Date.now()}.${ext}`;
+
+  const { error: uploadErr } = await supabase.storage
+    .from("subject-files")
+    .upload(filePath, payload.file, { upsert: true });
+  if (uploadErr) throw uploadErr;
+
+  const { data: urlData } = supabase.storage
+    .from("subject-files")
+    .getPublicUrl(filePath);
+
+  const { error } = await supabase.from("materials").insert({
+    subject_id: payload.subject_id,
+    teacher_id: payload.teacher_id,
+    title: payload.title,
+    description: payload.description,
+    file_url: urlData.publicUrl,
+  });
   if (error) throw error;
 }
 
@@ -325,8 +345,7 @@ export async function deleteEvent(eventId: string) {
 
 export async function uploadAvatar(userId: string, file: File) {
   const fileExt = file.name.split(".").pop();
-  const filePath =
-  `${userId}/avatar-${Date.now()}.${fileExt}`;
+  const filePath = `${userId}/avatar-${Date.now()}.${fileExt}`;
 
   const { error } = await supabase.storage
     .from("avatar")
@@ -581,7 +600,9 @@ export async function upsertQuizQuestion(
     return data as QuizQuestion;
   }
 }
-
+ 
+// Persist new order after drag-and-drop reorder.
+// Sends one update per question in parallel.
 export async function reorderQuizQuestions(
   questions: Array<{ id: string; order_index: number }>,
 ): Promise<void> {
@@ -635,16 +656,18 @@ export async function deleteQuizWithActivity(quizId: string) {
     await supabase.from("activities").delete().eq("id", quiz.activity_id);
   }
 }
- 
+
 // ─── Media Upload ─────────────────────────────────────────────────────────────
  
+// Uploads a question attachment (image, audio, video, PDF) to:
+//   quiz-media/{quizId}/{questionId}/attachment.{ext}
 export async function uploadQuizMedia(
   quizId: string,
   questionId: string,
   file: File,
 ): Promise<QuizQuestionMedia> {
   const ext = file.name.split(".").pop();
-  const filePath = `${quizId}/${questionId}-${Date.now()}.${ext}`;
+  const filePath = `${quizId}/${questionId}/attachment-${Date.now()}.${ext}`;
  
   const { error: uploadErr } = await supabase.storage
     .from("quiz-media")
@@ -666,6 +689,27 @@ export async function uploadQuizMedia(
  
   if (error) throw error;
   return data as QuizQuestionMedia;
+}
+ 
+// Uploads an image-choice option image to:
+//   quiz-media/{quizId}/{questionId}/image-choices/{timestamp}.{ext}
+// Returns just the public URL (not stored in quiz_question_media).
+export async function uploadQuizChoiceImage(
+  quizId: string,
+  questionId: string,
+  file: File,
+): Promise<string> {
+  const ext = file.name.split(".").pop();
+  const filePath = `${quizId}/${questionId}/image-choices/${Date.now()}.${ext}`;
+ 
+  const { error } = await supabase.storage
+    .from("quiz-media")
+    .upload(filePath, file, { upsert: true });
+ 
+  if (error) throw error;
+ 
+  const { data } = supabase.storage.from("quiz-media").getPublicUrl(filePath);
+  return data.publicUrl;
 }
  
 export async function uploadQuizBanner(quizId: string, file: File): Promise<string> {

@@ -13,6 +13,7 @@ import {
   Check,
   Loader2,
   ClipboardList,
+  CalendarDays,
 } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,11 +28,7 @@ import { GradientBackground } from "@/components/layout/gradient-background";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/providers/auth-provider";
 import { supabase } from "@/lib/supabase";
-import {
-  fetchTeacherSubjects,
-  uploadAvatar,
-  type Subject,
-} from "@/lib/api/eduverse";
+import { uploadAvatar } from "@/lib/api/eduverse";
 
 export function AppShell({
   title,
@@ -42,16 +39,6 @@ export function AppShell({
 }) {
   const { profile, role, user, refreshProfile } = useAuth();
   const location = useLocation();
-  const [teacherSubjects, setTeacherSubjects] = useState<Subject[]>([]);
-
-  useEffect(() => {
-    if (role !== "teacher" || !user) {
-      setTeacherSubjects([]);
-      return;
-    }
-
-    fetchTeacherSubjects(user.id).then(setTeacherSubjects);
-  }, [role, user]);
 
   const signOut = async () => {
     await supabase.auth.signOut();
@@ -244,16 +231,16 @@ export function AppShell({
                     {!isCollapsed && <span>Dashboard</span>}
                   </Link>
                   <Link
-                    to="/student/subject"
+                    to="/student/calendar"
                     className={cn(
                       "rounded-xl px-4 py-3 text-sm font-medium transition flex items-center gap-3",
-                      location.pathname === "/student/subject"
+                      location.pathname.startsWith("/student/calendar")
                         ? "bg-indigo-500 text-white"
                         : "text-muted-foreground hover:bg-slate-100",
                     )}
                   >
-                    <BookOpen className="h-5 w-5 shrink-0" />
-                    {!isCollapsed && <span>Subject Details</span>}
+                    <CalendarDays className="h-5 w-5 shrink-0" />
+                    {!isCollapsed && <span>Calendar</span>}
                   </Link>
                 </nav>
               </div>
@@ -281,13 +268,13 @@ export function AppShell({
                     to="/teacher/subjects"
                     className={cn(
                       "rounded-xl px-4 py-3 text-sm font-medium transition flex items-center gap-3",
-                      isActive("/teacher/subjects")
+                      location.pathname.startsWith("/teacher/subjects")
                         ? "bg-indigo-500 text-white"
                         : "text-muted-foreground hover:bg-slate-100",
                     )}
                   >
                     <BookOpen className="h-5 w-5 shrink-0" />
-                    {!isCollapsed && <span>Add subject</span>}
+                    {!isCollapsed && <span>Subjects</span>}
                   </Link>
                   <Link
                     to="/teacher/calendar"
@@ -315,44 +302,6 @@ export function AppShell({
                     {!isCollapsed && <span>Quizzes & Exams</span>}
                   </Link>
                 </nav>
-                <div className="space-y-2">
-                  <p className="text-xs uppercase tracking-[0.24em] text-muted-foreground overflow-hidden">
-                    {!isCollapsed && "Subjects"}
-                  </p>
-                  <nav className="max-h-64 space-y-2 overflow-y-auto pr-1">
-                    {teacherSubjects.length === 0 ? (
-                      <p className="rounded-xl bg-slate-50 px-4 py-3 text-sm text-muted-foreground">
-                        No subjects yet.
-                      </p>
-                    ) : (
-                      teacherSubjects.map((subject) => {
-                        const subjectPath = `/teacher/subjects/${subject.id}`;
-
-                        return (
-                          <Link
-                            key={subject.id}
-                            to={subjectPath}
-                            className={cn(
-                              "block rounded-xl px-4 py-3 text-sm font-medium transition text-center",
-                              isActive(subjectPath)
-                                ? "bg-indigo-500 text-white"
-                                : "text-muted-foreground hover:bg-slate-100",
-                            )}
-                          >
-                            <span className="block truncate">
-                              {isCollapsed ? "S" : subject.subject_name}
-                            </span>
-                            {!isCollapsed && (
-                              <span className="mt-1 block truncate text-xs opacity-80">
-                                {subject.subject_code}
-                              </span>
-                            )}
-                          </Link>
-                        );
-                      })
-                    )}
-                  </nav>
-                </div>
               </div>
             ) : null}
 
