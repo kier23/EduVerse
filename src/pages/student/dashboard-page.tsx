@@ -200,7 +200,7 @@ export function StudentDashboardPage() {
               setEnrollStatus("");
               setEnrollOpen(true);
             }}
-            className="bg-amber-400/100 hover:bg-amber-600 text-white gap-1.5"
+            className="bg-amber-400 hover:bg-amber-600 text-white gap-1.5"
           >
             <Plus className="h-4 w-4" /> Enroll in Subject
           </Button>
@@ -229,7 +229,7 @@ export function StudentDashboardPage() {
           <Button
             size="sm"
             onClick={() => setEnrollOpen(true)}
-            className="bg-amber-400/100 hover:bg-amber-600 text-white gap-1.5 mt-2"
+            className="bg-amber-400 hover:bg-amber-600 text-white gap-1.5 mt-2"
           >
             <Plus className="h-4 w-4" /> Enroll in Subject
           </Button>
@@ -406,7 +406,7 @@ export function StudentDashboardPage() {
                   type="submit"
                   size="sm"
                   disabled={enrolling || !classCode.trim()}
-                  className="bg-amber-400/100 hover:bg-amber-600 text-white min-w-24"
+                  className="bg-amber-400 hover:bg-amber-600 text-white min-w-24"
                 >
                   {enrolling ? (
                     <>

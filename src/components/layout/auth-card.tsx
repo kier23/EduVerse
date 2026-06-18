@@ -38,8 +38,7 @@ export function AuthCard({
             Back
           </Link>
         ) : null}
-        <Card className="w-full border-white/60 shadow-xl shadow-indigo-500/10">
-          <div className="h-1 bg-linear-to-r from-indigo-500 via-violet-500 to-purple-500" />
+        <Card className="w-full border-amber/60 shadow-xl shadow-amber-500/10">
           <CardHeader>
             <CardTitle className="text-xl text-white">{title}</CardTitle>
             <CardDescription>{description}</CardDescription>

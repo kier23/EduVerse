@@ -315,9 +315,7 @@ export function ActivityDetailPage() {
                 </span>
               )}
             </div>
-            <h1 className="text-xl font-bold text-white">
-              {activity?.title}
-            </h1>
+            <h1 className="text-xl font-bold text-white">{activity?.title}</h1>
           </>
         )}
       </div>
@@ -385,7 +383,7 @@ export function ActivityDetailPage() {
 
                 {/* Feedback */}
                 {submission?.feedback && (
-                  <div className="rounded-xl border border-slate-100 bg-slate-950/70 px-4 py-3">
+                  <div className="rounded-xl border border-stone-100 bg-stone-950/70 px-4 py-3">
                     <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">
                       Teacher Feedback
                     </p>
@@ -412,7 +410,7 @@ export function ActivityDetailPage() {
                       href={f.file_url ?? "#"}
                       target="_blank"
                       rel="noreferrer"
-                      className="flex items-center justify-between rounded-xl border border-slate-100 bg-white px-3 py-2.5 hover:border-indigo-200 hover:bg-amber-400/10 transition-colors group"
+                      className="flex items-center justify-between rounded-xl border border-slate-100 bg-stone-900/70 px-3 py-2.5 hover:border-indigo-200 hover:bg-amber-400/10 transition-colors group"
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
                         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-400/10">
@@ -462,7 +460,7 @@ export function ActivityDetailPage() {
                 </div>
 
                 {activity.instructions && (
-                  <div className="rounded-xl border border-slate-100 bg-slate-950/60 p-4">
+                  <div className="rounded-xl border border-stone-100 bg-stone-950/60 p-4">
                     <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
                       Instructions
                     </p>
@@ -529,7 +527,7 @@ export function ActivityDetailPage() {
                       onChange={(e) => setSubmissionText(e.target.value)}
                       rows={5}
                       placeholder="Type your response here…"
-                      className="w-full rounded-xl border border-amber-500/15 bg-white px-4 py-3 text-sm text-amber-50 placeholder-slate-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 resize-none"
+                      className="w-full rounded-xl border border-amber-500/15 bg-stone-900/70 px-4 py-3 text-sm text-amber-50 placeholder-slate-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 resize-none"
                     />
                   </div>
 
@@ -566,7 +564,7 @@ export function ActivityDetailPage() {
                       {stagedFiles.map((f) => (
                         <li
                           key={f.name}
-                          className="flex items-center justify-between rounded-xl border border-slate-100 bg-white px-3 py-2.5"
+                          className="flex items-center justify-between rounded-xl border border-stone-100 bg-stone-900/70 px-3 py-2.5"
                         >
                           <div className="flex items-center gap-2.5 min-w-0">
                             <Paperclip className="h-4 w-4 shrink-0 text-indigo-400" />
@@ -637,7 +635,7 @@ export function ActivityDetailPage() {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {submission?.submission_text && (
-                    <div className="rounded-xl border border-slate-100 bg-slate-950/70 p-4">
+                    <div className="rounded-xl border border-stone-100 bg-stone-950/70 p-4">
                       <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
                         Your answer
                       </p>
@@ -647,7 +645,7 @@ export function ActivityDetailPage() {
                     </div>
                   )}
                   {submission?.files?.length ? (
-                    <div className="rounded-xl border border-slate-100 bg-slate-950/70 p-4">
+                    <div className="rounded-xl border border-stone-100 bg-stone-950/70 p-4">
                       <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
                         Submitted files
                       </p>
@@ -658,7 +656,7 @@ export function ActivityDetailPage() {
                             href={file.file_url ?? "#"}
                             target="_blank"
                             rel="noreferrer"
-                            className="flex items-center justify-between rounded-xl border border-slate-100 bg-white px-3 py-2.5 hover:border-indigo-200 hover:bg-amber-400/10 transition-colors group"
+                            className="flex items-center justify-between rounded-xl border border-slate-100 bg-stone-900/70 px-3 py-2.5 hover:border-indigo-200 hover:bg-amber-400/10 transition-colors group"
                           >
                             <div className="flex items-center gap-2.5 min-w-0">
                               <FileText className="h-4 w-4 text-indigo-400 shrink-0" />

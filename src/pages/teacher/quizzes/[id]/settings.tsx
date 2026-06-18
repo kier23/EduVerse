@@ -375,8 +375,8 @@ export function QuizSettingsPanel({
             className={cn(
               "min-w-27.5 transition-all",
               saved
-                ? "bg-emerald-400/100 hover:bg-emerald-400/100 text-white"
-                : "bg-amber-400/100 hover:bg-amber-600 text-white",
+                ? "bg-emerald-400 hover:bg-emerald-400 text-white"
+                : "bg-amber-400 hover:bg-amber-600 text-white",
             )}
           >
             {saving ? (
@@ -462,7 +462,7 @@ function Toggle({
         onClick={() => onChange(!checked)}
         className={cn(
           "relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors duration-200",
-          checked ? "bg-amber-400/100" : "bg-muted",
+          checked ? "bg-amber-400" : "bg-muted",
         )}
       >
         <span

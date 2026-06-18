@@ -255,7 +255,7 @@ export function StudentSubjectPage() {
                 {[1, 2].map((n) => (
                   <div
                     key={n}
-                    className="h-16 animate-pulse rounded-xl bg-slate-100"
+                    className="h-16 animate-pulse rounded-xl bg-stone-900/70"
                   />
                 ))}
               </>
@@ -317,7 +317,7 @@ export function StudentSubjectPage() {
                 {[1, 2].map((n) => (
                   <div
                     key={n}
-                    className="h-16 animate-pulse rounded-xl bg-slate-100"
+                    className="h-16 animate-pulse rounded-xl bg-stone-900/70"
                   />
                 ))}
               </>
@@ -367,7 +367,7 @@ export function StudentSubjectPage() {
         {(loading || quizActivities.length > 0) && (
           <div className="xl:col-span-2">
             <Card>
-              <div className="h-1 bg-linear-to-r from-indigo-500 to-violet-500" />
+              <div className="h-1 bg-linear-to-r from-amber-500 to-yellow-500" />
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <ClipboardList className="h-5 w-5 text-amber-600" />
@@ -383,7 +383,7 @@ export function StudentSubjectPage() {
                     {[1, 2].map((n) => (
                       <div
                         key={n}
-                        className="h-24 animate-pulse rounded-xl bg-slate-100"
+                        className="h-24 animate-pulse rounded-xl bg-stone-900/70"
                       />
                     ))}
                   </div>

@@ -130,7 +130,7 @@ export default function QuizzesPage() {
         </p>
         <Button
           size="sm"
-          className="bg-amber-400/100 hover:bg-amber-600 text-white gap-1.5"
+          className="bg-amber-400 hover:bg-amber-600 text-white gap-1.5"
           onClick={() => setCreateOpen(true)}
         >
           <Plus className="h-4 w-4" />
@@ -159,7 +159,7 @@ export default function QuizzesPage() {
           </div>
           <Button
             size="sm"
-            className="bg-amber-400/100 hover:bg-amber-600 text-white gap-1.5 mt-2"
+            className="bg-amber-400 hover:bg-amber-600 text-white gap-1.5 mt-2"
             onClick={() => setCreateOpen(true)}
           >
             <Plus className="h-4 w-4" />
@@ -289,7 +289,7 @@ export default function QuizzesPage() {
             </Button>
             <Button
               size="sm"
-              className="bg-amber-400/100 hover:bg-amber-600 text-white min-w-30"
+              className="bg-amber-400 hover:bg-amber-600 text-white min-w-30"
               onClick={handleCreate}
               disabled={
                 creating ||

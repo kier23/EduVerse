@@ -159,7 +159,6 @@ export function TeacherCalendarPage() {
       <div className="grid gap-6 lg:grid-cols-[1fr_400px]">
         {/* ── Calendar ── */}
         <Card>
-          <div className="h-1 bg-linear-to-r from-sky-500 to-indigo-500" />
           <CardContent className="p-4">
             <Calendar
               mode="single"
@@ -189,9 +188,9 @@ export function TeacherCalendarPage() {
                   return (
                     <button
                       onClick={() => setSelectedDate(day.date)}
-                      className={`relative flex h-auto min-h-12 w-full min-w-0 flex-col items-start overflow-hidden rounded-lg border p-1 text-left transition hover:bg-slate-950/70 sm:min-h-18 ${
+                      className={`relative flex h-auto min-h-12 w-full min-w-0 flex-col items-start overflow-hidden rounded-lg border p-1 text-left transition hover:bg-stone-800/70 sm:min-h-18 ${
                         isSelected
-                          ? "border-indigo-400 bg-amber-400/10 ring-1 ring-indigo-400"
+                          ? "border-amber-400 bg-amber-400/10 ring-1 ring-amber-400"
                           : "border-transparent"
                       }`}
                     >
@@ -199,7 +198,7 @@ export function TeacherCalendarPage() {
                       <span
                         className={`mb-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
                           isSelected
-                            ? "bg-cyan-400 text-white"
+                            ? "bg-amber-400 text-white"
                             : "text-slate-200"
                         }`}
                       >
@@ -234,7 +233,6 @@ export function TeacherCalendarPage() {
         <div className="space-y-4">
           {/* Selected Day Header */}
           <Card>
-            <div className="h-1 bg-linear-to-r from-violet-500 to-purple-500" />
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-base">
@@ -262,7 +260,6 @@ export function TeacherCalendarPage() {
           {/* ── Add Event Form with Calendar Picker ── */}
           {showForm && (
             <Card className="animate-in slide-in-from-top-2 duration-200">
-              <div className="h-1 bg-linear-to-r from-emerald-400 to-sky-500" />
               <CardHeader className="pb-2">
                 <CardTitle className="text-base">New Event</CardTitle>
               </CardHeader>
@@ -355,11 +352,39 @@ export function TeacherCalendarPage() {
                       onChange={(e) => setEventType(e.target.value)}
                       className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                     >
-                      <option value="general">General</option>
-                      <option value="exam">Exam</option>
-                      <option value="meeting">Meeting</option>
-                      <option value="deadline">Deadline</option>
-                      <option value="activity">Activity</option>
+                      <option
+                        style={{ backgroundColor: "#0A090C" }}
+                        className="hover:bg-amber-400/10"
+                        value="general"
+                      >
+                        General
+                      </option>
+                      <option
+                        style={{ backgroundColor: "#0A090C" }}
+                        className="hover:bg-amber-400/10"
+                        value="exam"
+                      >
+                        Exam
+                      </option>
+                      <option
+                        style={{ backgroundColor: "#0A090C" }}
+                        className="hover:bg-amber-400/10"
+                        value="meeting"
+                      >
+                        Meeting
+                      </option>
+                      <option
+                        style={{ backgroundColor: "#0A090C" }}
+                        value="deadline"
+                      >
+                        Deadline
+                      </option>
+                      <option
+                        style={{ backgroundColor: "#0A090C" }}
+                        value="activity"
+                      >
+                        Activity
+                      </option>
                     </select>
                   </div>
 
@@ -386,7 +411,7 @@ export function TeacherCalendarPage() {
             <CardContent>
               {selectedDateEvents.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-8 text-center">
-                  <div className="mb-3 rounded-full bg-amber-400/10 p-3 ring-1 ring-cyan-400/20">
+                  <div className="mb-3 rounded-full bg-amber-400/10 p-3 ring-1 ring-amber-400/20">
                     <Clock className="h-5 w-5 text-amber-100" />
                   </div>
                   <p className="text-sm text-muted-foreground">
@@ -419,7 +444,7 @@ export function TeacherCalendarPage() {
                     .map((evt) => (
                       <div
                         key={evt.id}
-                        className="group relative rounded-xl border bg-slate-900/65 p-3 backdrop-blur-sm transition hover:shadow-md"
+                        className="group relative rounded-xl border bg-stone-900/65 p-3 backdrop-blur-sm transition hover:shadow-md"
                       >
                         <div className="flex items-start gap-3">
                           <div

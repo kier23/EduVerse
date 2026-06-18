@@ -38,13 +38,14 @@ function Calendar({
           "inline-flex h-9 w-9 items-center justify-center gap-2 rounded-md p-0 text-sm font-medium text-amber-50 transition-colors hover:bg-amber-400/10 hover:text-amber-50 aria-selected:opacity-100",
         range_end: "day-range-end",
         selected:
-          "rounded-md bg-linear-to-r from-amber-400 via-orange-400 to-yellow-500 text-stone-950 hover:bg-linear-to-r hover:from-cyan-300 hover:via-sky-300 hover:to-indigo-400 hover:text-stone-950 focus:bg-linear-to-r focus:from-cyan-300 focus:via-sky-300 focus:to-indigo-400 focus:text-stone-950",
+          "rounded-md bg-linear-to-r from-amber-400 via-orange-400 to-yellow-500 text-stone-950 hover:bg-linear-to-r hover:from-yellow-300 hover:via-orange-300 hover:to-amber-400 hover:text-stone-950 focus:bg-linear-to-r focus:from-cyan-300 focus:via-sky-300 focus:to-indigo-400 focus:text-stone-950",
         today:
           "rounded-md border border-cyan-400/30 bg-amber-400/10 font-semibold text-amber-50",
         outside:
           "day-outside text-slate-500 aria-selected:text-slate-600 opacity-50",
         disabled: "text-slate-500 opacity-50",
-        range_middle: "aria-selected:bg-amber-400/10 aria-selected:text-amber-50",
+        range_middle:
+          "aria-selected:bg-amber-400/10 aria-selected:text-amber-50",
         hidden: "invisible",
         ...classNames,
       }}

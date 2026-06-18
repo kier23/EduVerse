@@ -1094,10 +1094,10 @@ function SubjectDetailView({ subjectId }: { subjectId: string }) {
                         {activity.instructions}
                       </p>
                       <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                        <span className="rounded-full bg-violet-400/10 px-2.5 py-1 text-violet-700">
+                        <span className="rounded-full bg-violet-400/10 px-2.5 py-1 text-white-700">
                           Due: {activity.due_date ?? "No due date"}
                         </span>
-                        <span className="rounded-full bg-amber-400/10 px-2.5 py-1 text-amber-700">
+                        <span className="rounded-full bg-amber-400/10 px-2.5 py-1 text-white-700">
                           {activity.points ?? 0} points
                         </span>
                         {activity.file_url && (
@@ -1105,7 +1105,7 @@ function SubjectDetailView({ subjectId }: { subjectId: string }) {
                             href={activity.file_url}
                             target="_blank"
                             rel="noreferrer"
-                            className="inline-flex items-center rounded-full bg-sky-50 px-2.5 py-1 text-sky-700 hover:underline"
+                            className="inline-flex items-center rounded-full bg-amber-700 px-2.5 py-1 text-white-700 hover:underline"
                           >
                             Attachment
                             <ExternalLink className="ml-1 h-3 w-3" />
@@ -1285,7 +1285,7 @@ function SubjectDetailView({ subjectId }: { subjectId: string }) {
               size="sm"
               onClick={onSaveActivity}
               disabled={savingActivity}
-              className="bg-amber-400/100 hover:bg-amber-600 text-white min-w-24"
+              className="bg-amber-400 hover:bg-amber-600 text-white min-w-24"
             >
               {savingActivity ? (
                 <>
@@ -1414,7 +1414,7 @@ function SubjectDetailView({ subjectId }: { subjectId: string }) {
               size="sm"
               onClick={onSaveMaterial}
               disabled={savingMaterial}
-              className="bg-emerald-400/100 hover:bg-emerald-600 text-white min-w-24"
+              className="bg-emerald-400 hover:bg-emerald-600 text-white min-w-24"
             >
               {savingMaterial ? (
                 <>
