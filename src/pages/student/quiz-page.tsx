@@ -265,13 +265,13 @@ export function StudentQuizPage() {
     return (
       <div className="flex h-screen flex-col items-center justify-center gap-4 text-center px-4">
         <AlertCircle className="h-10 w-10 text-red-300" />
-        <p className="font-semibold text-slate-700">
+        <p className="font-semibold text-slate-200">
           {error || "Quiz not found."}
         </p>
         <button
           type="button"
           onClick={() => navigate(-1)}
-          className="text-sm text-indigo-500 hover:underline"
+          className="text-sm text-amber-500 hover:underline"
         >
           Go back
         </button>
@@ -288,7 +288,7 @@ export function StudentQuizPage() {
         style={{ background: "#f8fafc" }}
       >
         {/* Header bar */}
-        <div className="flex items-center gap-3 px-6 py-3 border-b border-slate-200 bg-white/80 backdrop-blur-sm">
+        <div className="flex items-center gap-3 px-6 py-3 border-b border-amber-500/15 bg-stone-950/75 backdrop-blur-sm">
           <button
             type="button"
             onClick={() =>
@@ -296,11 +296,11 @@ export function StudentQuizPage() {
                 subjectId ? `/student/subject/${subjectId}` : (-1 as never),
               )
             }
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-slate-100 transition-colors"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-slate-800 transition-colors"
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
-          <p className="text-sm font-medium text-slate-700 truncate">
+          <p className="text-sm font-medium text-slate-200 truncate">
             {activityTitle}
           </p>
         </div>
@@ -333,7 +333,7 @@ export function StudentQuizPage() {
                 className="h-1 w-16 rounded-full mb-6"
                 style={{ background: color }}
               />
-              <h1 className="text-2xl font-bold text-slate-900 mb-2">
+              <h1 className="text-2xl font-bold text-white mb-2">
                 {activityTitle}
               </h1>
 
@@ -345,7 +345,7 @@ export function StudentQuizPage() {
 
               {/* Meta */}
               <div className="flex flex-wrap gap-3 mb-8">
-                <span className="flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-600">
+                <span className="flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-300">
                   <FileText className="h-3.5 w-3.5" />
                   {total} question{total !== 1 ? "s" : ""}
                 </span>
@@ -356,7 +356,7 @@ export function StudentQuizPage() {
                   </span>
                 )}
                 {quiz.attempts_allowed && (
-                  <span className="flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-600">
+                  <span className="flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-300">
                     <RotateCcw className="h-3.5 w-3.5" />
                     {quiz.attempts_allowed} attempt
                     {quiz.attempts_allowed !== 1 ? "s" : ""} allowed
@@ -401,7 +401,7 @@ export function StudentQuizPage() {
             >
               <CheckCircle2 className="h-8 w-8" style={{ color }} />
             </div>
-            <h1 className="text-2xl font-bold text-slate-900 mb-1">
+            <h1 className="text-2xl font-bold text-white mb-1">
               Submitted!
             </h1>
             <p className="text-sm text-muted-foreground mb-6">
@@ -420,7 +420,7 @@ export function StudentQuizPage() {
             </div>
 
             <div className="flex gap-3 flex-wrap justify-center mb-2">
-              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
+              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-300">
                 {pct}% score
               </span>
               <span
@@ -442,7 +442,7 @@ export function StudentQuizPage() {
             style={{ borderColor: color + "20" }}
           >
             <div className="border-b border-slate-100 px-5 py-3">
-              <p className="text-sm font-semibold text-slate-800">
+              <p className="text-sm font-semibold text-amber-50">
                 Your Answers
               </p>
             </div>
@@ -456,7 +456,7 @@ export function StudentQuizPage() {
                     {i + 1}
                   </span>
                   <div className="min-w-0">
-                    <p className="text-xs font-medium text-slate-700 line-clamp-1">
+                    <p className="text-xs font-medium text-slate-200 line-clamp-1">
                       {q.question}
                     </p>
                     <p className="text-xs text-muted-foreground mt-0.5">
@@ -554,7 +554,7 @@ export function StudentQuizPage() {
               type="button"
               onClick={() => setCurrentIndex((i) => Math.max(0, i - 1))}
               disabled={currentIndex === 0}
-              className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed"
+              className="rounded-xl border border-amber-500/15 bg-white px-4 py-2 text-sm font-medium text-slate-300 transition hover:bg-slate-950/70 disabled:opacity-30 disabled:cursor-not-allowed"
             >
               ← Back
             </button>
@@ -655,7 +655,7 @@ function QuestionRenderer({
             · {question.points ?? 1} pt{(question.points ?? 1) !== 1 ? "s" : ""}
           </span>
         </div>
-        <p className="text-base font-semibold text-slate-900 leading-snug">
+        <p className="text-base font-semibold text-white leading-snug">
           {question.question || (
             <span className="italic text-slate-400">No question text</span>
           )}
@@ -805,7 +805,7 @@ function QuestionRenderer({
         placeholder="Type your answer here…"
         value={(answer as string) ?? ""}
         onChange={(e) => onAnswer(e.target.value)}
-        className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:outline-none focus:ring-2 transition-all"
+        className="w-full rounded-xl border border-amber-500/15 bg-slate-950/70 px-4 py-3 text-sm focus:outline-none focus:ring-2 transition-all"
         style={{ "--tw-ring-color": color + "50" } as React.CSSProperties}
       />,
     );
@@ -819,7 +819,7 @@ function QuestionRenderer({
         value={(answer as string) ?? ""}
         onChange={(e) => onAnswer(e.target.value)}
         rows={5}
-        className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:outline-none focus:ring-2 transition-all"
+        className="w-full resize-none rounded-xl border border-amber-500/15 bg-slate-950/70 px-4 py-3 text-sm focus:outline-none focus:ring-2 transition-all"
         style={{ "--tw-ring-color": color + "50" } as React.CSSProperties}
       />,
     );
@@ -838,7 +838,7 @@ function QuestionRenderer({
       onAnswer(next);
     };
     return wrap(
-      <div className="text-sm text-slate-800 leading-loose">
+      <div className="text-sm text-amber-50 leading-loose">
         {parts.map((part, i) => (
           <span key={i}>
             {part}
@@ -882,7 +882,7 @@ function QuestionRenderer({
         {current.map((item, i) => (
           <div
             key={i}
-            className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3"
+            className="flex items-center gap-3 rounded-xl border border-amber-500/15 bg-white px-4 py-3"
           >
             <span
               className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
@@ -890,13 +890,13 @@ function QuestionRenderer({
             >
               {i + 1}
             </span>
-            <span className="flex-1 text-sm text-slate-700">{item}</span>
+            <span className="flex-1 text-sm text-slate-200">{item}</span>
             <div className="flex flex-col gap-0.5">
               <button
                 type="button"
                 onClick={() => i > 0 && move(i, i - 1)}
                 disabled={i === 0}
-                className="text-slate-300 hover:text-slate-500 disabled:opacity-20 text-xs"
+                className="text-slate-300 hover:text-slate-400 disabled:opacity-20 text-xs"
               >
                 ▲
               </button>
@@ -904,7 +904,7 @@ function QuestionRenderer({
                 type="button"
                 onClick={() => i < current.length - 1 && move(i, i + 1)}
                 disabled={i === current.length - 1}
-                className="text-slate-300 hover:text-slate-500 disabled:opacity-20 text-xs"
+                className="text-slate-300 hover:text-slate-400 disabled:opacity-20 text-xs"
               >
                 ▼
               </button>
@@ -928,7 +928,7 @@ function QuestionRenderer({
         </p>
         {pairs.map((pair, i) => (
           <div key={i} className="flex items-center gap-3">
-            <div className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+            <div className="flex-1 rounded-xl border border-amber-500/15 bg-slate-950/70 px-3 py-2 text-sm text-slate-200">
               {pair.left}
             </div>
             <span className="text-slate-300 text-xs">→</span>
@@ -937,7 +937,7 @@ function QuestionRenderer({
               onChange={(e) =>
                 onAnswer({ ...matchAnswer, [pair.left]: e.target.value })
               }
-              className="flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2"
+              className="flex-1 rounded-xl border border-amber-500/15 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2"
               style={{ "--tw-ring-color": color + "50" } as React.CSSProperties}
             >
               <option value="">Select…</option>
@@ -958,10 +958,10 @@ function QuestionRenderer({
     const accepted = (content.accepted_types as string[]) ?? [];
     const maxMb = (content.max_size_mb as number) ?? 10;
     return wrap(
-      <div className="flex flex-col items-center gap-3 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 py-10">
+      <div className="flex flex-col items-center gap-3 rounded-xl border-2 border-dashed border-amber-500/15 bg-slate-950/70 py-10">
         <FileText className="h-8 w-8 text-slate-300" />
         <div className="text-center">
-          <p className="text-sm font-medium text-slate-600">Upload your file</p>
+          <p className="text-sm font-medium text-slate-300">Upload your file</p>
           <p className="text-xs text-muted-foreground mt-1">
             {accepted.length > 0
               ? accepted.map((t) => `.${t}`).join(", ")
@@ -971,7 +971,7 @@ function QuestionRenderer({
         </div>
         <input
           type="file"
-          className="text-xs text-slate-500 file:mr-3 file:rounded-lg file:border-0 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-white"
+          className="text-xs text-slate-400 file:mr-3 file:rounded-lg file:border-0 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-white"
           style={{ "--file-bg": color } as React.CSSProperties}
           onChange={(e) => {
             const f = e.target.files?.[0];
@@ -989,18 +989,18 @@ function QuestionRenderer({
     return wrap(
       <div className="space-y-3">
         {instructions && (
-          <p className="text-sm text-slate-600 bg-slate-50 rounded-xl px-4 py-3">
+          <p className="text-sm text-slate-300 bg-slate-950/70 rounded-xl px-4 py-3">
             {instructions}
           </p>
         )}
-        <div className="flex flex-col items-center gap-3 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 py-8">
+        <div className="flex flex-col items-center gap-3 rounded-xl border-2 border-dashed border-amber-500/15 bg-slate-950/70 py-8">
           <div
             className="flex h-14 w-14 items-center justify-center rounded-full"
             style={{ background: color + "15" }}
           >
             <Music className="h-7 w-7" style={{ color }} />
           </div>
-          <p className="text-sm font-medium text-slate-600">
+          <p className="text-sm font-medium text-slate-300">
             Tap to record your response
           </p>
           <p className="text-xs text-muted-foreground">Max {maxSec}s</p>
@@ -1040,7 +1040,7 @@ function MediaBlock({ media }: { media: QuizQuestionMedia }) {
         href={url}
         target="_blank"
         rel="noreferrer"
-        className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600 hover:bg-slate-100 transition-colors"
+        className="flex items-center gap-2 rounded-xl border border-amber-500/15 bg-slate-950/70 px-4 py-3 text-sm text-slate-300 hover:bg-slate-800 transition-colors"
       >
         <FileText className="h-4 w-4" /> View attached PDF
       </a>

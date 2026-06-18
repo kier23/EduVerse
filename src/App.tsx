@@ -13,11 +13,13 @@ import { StudentDashboardPage } from "@/pages/student/dashboard-page";
 import { StudentSubjectPage } from "@/pages/student/subject-page";
 import { StudentQuizPage } from "@/pages/student/quiz-page";
 import { StudentCalendarPage } from "@/pages/student/calendar-page";
+import { ActivityDetailPage } from "@/pages/student/activity-detail-page";
 import { AccountsManagementPage } from "@/pages/superadmin/accounts-management-page";
 import { SuperadminDashboardPage } from "@/pages/superadmin/dashboard-page";
 import { TeacherCalendarPage } from "@/pages/teacher/calendar-page";
 import { TeacherDashboardPage } from "@/pages/teacher/dashboard-page";
 import { TeacherSubjectPage } from "@/pages/teacher/subjects/subject-page";
+import TeacherActivityResponsesPage from "@/pages/teacher/activities/[id]/responses";
 import QuizzesPage from "@/pages/teacher/quizzes/page";
 import QuizEditorPage from "@/pages/teacher/quizzes/[id]/edit";
 import QuizResponsesPage from "@/pages/teacher/quizzes/[id]/responses";
@@ -45,6 +47,10 @@ function App() {
               <Route
                 path="/teacher/subjects/:subjectId"
                 element={<TeacherSubjectPage />}
+              />
+              <Route
+                path="/teacher/activities/:id/responses"
+                element={<TeacherActivityResponsesPage />}
               />
               <Route
                 path="/teacher/calendar"
@@ -76,6 +82,10 @@ function App() {
               <Route
                 path="/student/calendar"
                 element={<StudentCalendarPage />}
+              />
+              <Route
+                path="/student/activity/:activityId"
+                element={<ActivityDetailPage />}
               />
             </Route>
             <Route

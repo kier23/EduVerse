@@ -3,14 +3,16 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center rounded-xl text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/50",
+  "inline-flex items-center justify-center rounded-xl text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/40",
   {
     variants: {
       variant: {
-        default: "bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-500/25 hover:from-indigo-500 hover:to-violet-500 hover:shadow-lg",
-        outline: "border border-indigo-200/80 bg-white/60 backdrop-blur-sm hover:border-indigo-300 hover:bg-white/90",
-        ghost: "hover:bg-indigo-50 hover:text-indigo-700",
-        secondary: "bg-indigo-50 text-indigo-700 hover:bg-indigo-100",
+        default:
+          "bg-linear-to-r from-amber-400 via-orange-400 to-yellow-500 text-stone-950 shadow-md shadow-amber-500/20 hover:from-amber-300 hover:via-orange-300 hover:to-yellow-400 hover:shadow-lg",
+        outline:
+          "border border-amber-400/30 bg-stone-950/70 text-amber-100 backdrop-blur-sm hover:border-amber-300/60 hover:bg-stone-900/90",
+        ghost: "hover:bg-amber-400/10 hover:text-amber-100",
+        secondary: "bg-amber-400/10 text-amber-100 hover:bg-amber-400/20",
       },
       size: {
         default: "h-10 px-4 py-2",

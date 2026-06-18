@@ -8,7 +8,7 @@ import { supabase } from "@/lib/supabase";
 import type { SignupRole } from "@/types/auth";
 import { cn } from "@/lib/utils";
 
-const signupRoles: SignupRole[] = ["teacher", "student", "superadmin"];
+const signupRoles: SignupRole[] = ["teacher", "student"];
 
 export function SignupPage() {
   const [fullName, setFullName] = useState("");
@@ -96,7 +96,7 @@ export function SignupPage() {
           <button
             type="button"
             onClick={() => setShowPassword((prev) => !prev)}
-            className="absolute right-2 top-1/2 -translate-y-1/2 rounded px-2 py-1 text-xs font-medium text-indigo-600 hover:text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="absolute right-2 top-1/2 -translate-y-1/2 rounded px-2 py-1 text-xs font-medium text-amber-600 hover:text-amber-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           >
             {showPassword ? "Hide" : "Show"}
           </button>
@@ -114,7 +114,7 @@ export function SignupPage() {
           <button
             type="button"
             onClick={() => setShowConfirmPassword((prev) => !prev)}
-            className="absolute right-2 top-1/2 -translate-y-1/2 rounded px-2 py-1 text-xs font-medium text-indigo-600 hover:text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="absolute right-2 top-1/2 -translate-y-1/2 rounded px-2 py-1 text-xs font-medium text-amber-600 hover:text-amber-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           >
             {showConfirmPassword ? "Hide" : "Show"}
           </button>
@@ -141,7 +141,7 @@ export function SignupPage() {
           Already have an account?{" "}
           <Link
             to="/login"
-            className="font-medium text-indigo-600 hover:underline"
+            className="font-medium text-amber-600 hover:underline"
           >
             Log in
           </Link>

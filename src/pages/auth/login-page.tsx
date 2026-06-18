@@ -71,7 +71,7 @@ export function LoginPage() {
           New here?{" "}
           <Link
             to="/signup"
-            className="font-medium text-indigo-600 hover:underline"
+            className="font-medium text-amber-600 hover:underline"
           >
             Sign up as teacher or student
           </Link>

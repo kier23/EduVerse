@@ -157,7 +157,7 @@ export function AppShell({
     <GradientBackground>
       <div className="min-h-screen">
         <aside
-          className={`fixed left-6 top-6 mt-6 hidden h-[calc(100vh-3rem)] rounded-3xl border border-white/60 bg-white/70 p-5 shadow-lg shadow-indigo-500/5 backdrop-blur-md lg:flex lg:flex-col transition-all duration-300 z-50 ${
+          className={`fixed left-6 top-6 mt-6 hidden h-[calc(100vh-3rem)] rounded-3xl border border-amber-500/15 bg-stone-950/75 p-5 shadow-xl shadow-amber-500/5 backdrop-blur-xl lg:flex lg:flex-col transition-all duration-300 z-50 ${
             isCollapsed ? "w-20 px-3" : "w-[18rem] px-5"
           }`}
         >
@@ -183,7 +183,9 @@ export function AppShell({
                   <p className="text-xs uppercase tracking-[0.24em] text-muted-foreground">
                     EduVerse
                   </p>
-                  <h2 className="text-lg font-semibold">Navigation</h2>
+                  <h2 className="text-lg font-semibold text-white">
+                    Navigation
+                  </h2>
                 </div>
               )}
             </div>
@@ -193,7 +195,7 @@ export function AppShell({
               <button
                 type="button"
                 onClick={() => setIsCollapsed(true)}
-                className="rounded-lg p-1 hover:bg-slate-100 transition-colors"
+                className="rounded-lg p-1 text-amber-100/80 hover:bg-amber-400/10 hover:text-amber-50 transition-colors"
               >
                 <ChevronLeft className="h-5 w-5" />
               </button>
@@ -204,7 +206,7 @@ export function AppShell({
               <button
                 type="button"
                 onClick={() => setIsCollapsed(false)}
-                className="rounded-lg p-1 hover:bg-slate-100 transition-colors"
+                className="rounded-lg p-1 text-amber-100/80 hover:bg-amber-400/10 hover:text-amber-50 transition-colors"
               >
                 <ChevronRight className="h-5 w-5" />
               </button>
@@ -214,7 +216,7 @@ export function AppShell({
           <div className="mt-6 flex-1 space-y-6 overflow-y-auto pr-1">
             {role === "student" ? (
               <div className="space-y-3">
-                <p className="text-xs uppercase tracking-[0.24em] text-muted-foreground overflow-hidden">
+                <p className="text-xs uppercase tracking-[0.24em] text-amber-100/70 overflow-hidden">
                   {!isCollapsed && "Student Pages"}
                 </p>
                 <nav className="space-y-2">
@@ -223,8 +225,8 @@ export function AppShell({
                     className={cn(
                       "rounded-xl px-4 py-3 text-sm font-medium transition flex items-center gap-3",
                       isActive("/student/dashboard")
-                        ? "bg-indigo-500 text-white"
-                        : "text-muted-foreground hover:bg-slate-100",
+                        ? "bg-linear-to-r from-amber-400 via-orange-400 to-yellow-500 text-stone-950"
+                        : "text-slate-200 hover:bg-amber-400/10 hover:text-amber-50",
                     )}
                   >
                     <LayoutDashboard className="h-5 w-5 shrink-0" />
@@ -235,8 +237,8 @@ export function AppShell({
                     className={cn(
                       "rounded-xl px-4 py-3 text-sm font-medium transition flex items-center gap-3",
                       location.pathname.startsWith("/student/calendar")
-                        ? "bg-indigo-500 text-white"
-                        : "text-muted-foreground hover:bg-slate-100",
+                        ? "bg-linear-to-r from-amber-400 via-orange-400 to-yellow-500 text-stone-950"
+                        : "text-slate-200 hover:bg-amber-400/10 hover:text-amber-50",
                     )}
                   >
                     <CalendarDays className="h-5 w-5 shrink-0" />
@@ -248,7 +250,7 @@ export function AppShell({
 
             {role === "teacher" ? (
               <div className="space-y-3">
-                <p className="text-xs uppercase tracking-[0.24em] text-muted-foreground overflow-hidden">
+                <p className="text-xs uppercase tracking-[0.24em] text-amber-100/70 overflow-hidden">
                   {!isCollapsed && "Teacher Pages"}
                 </p>
                 <nav className="space-y-2">
@@ -257,8 +259,8 @@ export function AppShell({
                     className={cn(
                       "rounded-xl px-4 py-3 text-sm font-medium transition flex items-center gap-3",
                       isActive("/teacher/dashboard")
-                        ? "bg-indigo-500 text-white"
-                        : "text-muted-foreground hover:bg-slate-100",
+                        ? "bg-linear-to-r from-amber-400 via-orange-400 to-yellow-500 text-stone-950"
+                        : "text-slate-200 hover:bg-amber-400/10 hover:text-amber-50",
                     )}
                   >
                     <LayoutDashboard className="h-5 w-5 shrink-0" />
@@ -269,8 +271,8 @@ export function AppShell({
                     className={cn(
                       "rounded-xl px-4 py-3 text-sm font-medium transition flex items-center gap-3",
                       location.pathname.startsWith("/teacher/subjects")
-                        ? "bg-indigo-500 text-white"
-                        : "text-muted-foreground hover:bg-slate-100",
+                        ? "bg-linear-to-r from-amber-400 via-orange-400 to-yellow-500 text-stone-950"
+                        : "text-slate-200 hover:bg-amber-400/10 hover:text-amber-50",
                     )}
                   >
                     <BookOpen className="h-5 w-5 shrink-0" />
@@ -281,8 +283,8 @@ export function AppShell({
                     className={cn(
                       "rounded-xl px-4 py-3 text-sm font-medium transition flex items-center gap-3",
                       isActive("/teacher/calendar")
-                        ? "bg-indigo-500 text-white"
-                        : "text-muted-foreground hover:bg-slate-100",
+                        ? "bg-linear-to-r from-amber-400 via-orange-400 to-yellow-500 text-stone-950"
+                        : "text-slate-200 hover:bg-amber-400/10 hover:text-amber-50",
                     )}
                   >
                     <Calendar className="h-5 w-5 shrink-0" />
@@ -293,8 +295,8 @@ export function AppShell({
                     className={cn(
                       "rounded-xl px-4 py-3 text-sm font-medium transition flex items-center gap-3",
                       isActive("/teacher/quizzes")
-                        ? "bg-indigo-500 text-white"
-                        : "text-muted-foreground hover:bg-slate-100",
+                        ? "bg-linear-to-r from-amber-400 via-orange-400 to-yellow-500 text-stone-950"
+                        : "text-slate-200 hover:bg-amber-400/10 hover:text-amber-50",
                     )}
                     title="Quizzes"
                   >
@@ -307,7 +309,7 @@ export function AppShell({
 
             {role === "superadmin" ? (
               <div className="space-y-3">
-                <p className="text-xs uppercase tracking-[0.24em] text-muted-foreground overflow-hidden">
+                <p className="text-xs uppercase tracking-[0.24em] text-amber-100/70 overflow-hidden">
                   {!isCollapsed && "Admin Pages"}
                 </p>
                 <nav className="space-y-2">
@@ -316,8 +318,8 @@ export function AppShell({
                     className={cn(
                       "rounded-xl px-4 py-3 text-sm font-medium transition flex items-center gap-3",
                       isActive("/superadmin/dashboard")
-                        ? "bg-indigo-500 text-white"
-                        : "text-muted-foreground hover:bg-slate-100",
+                        ? "bg-linear-to-r from-amber-400 via-orange-400 to-yellow-500 text-stone-950"
+                        : "text-slate-200 hover:bg-amber-400/10 hover:text-amber-50",
                     )}
                   >
                     <LayoutDashboard className="h-5 w-5 shrink-0" />
@@ -328,8 +330,8 @@ export function AppShell({
                     className={cn(
                       "rounded-xl px-4 py-3 text-sm font-medium transition flex items-center gap-3",
                       isActive("/superadmin/accounts")
-                        ? "bg-indigo-500 text-white"
-                        : "text-muted-foreground hover:bg-slate-100",
+                        ? "bg-linear-to-r from-amber-400 via-orange-400 to-yellow-500 text-stone-950"
+                        : "text-slate-200 hover:bg-amber-400/10 hover:text-amber-50",
                     )}
                   >
                     <Users className="h-5 w-5 shrink-0" />
@@ -340,10 +342,10 @@ export function AppShell({
             ) : null}
           </div>
 
-          <div className="mt-5 border-t border-white/70 pt-4">
+          <div className="mt-5 border-t border-amber-500/15 pt-4">
             <div
               className={cn(
-                "rounded-2xl bg-slate-50/90 p-3",
+                "rounded-2xl border border-amber-500/15 bg-stone-950/75 p-3 shadow-inner shadow-amber-500/5",
                 isCollapsed
                   ? "flex flex-col items-center gap-3"
                   : "flex items-center gap-3",
@@ -357,15 +359,15 @@ export function AppShell({
                   aria-label="Sign out"
                   className={cn(
                     buttonVariants({ variant: "ghost", size: "sm" }),
-                    "h-9 w-9 shrink-0 px-0",
+                    "h-9 w-9 shrink-0 px-0 text-white",
                   )}
                 >
-                  <LogOut className="h-4 w-4" />
+                  <LogOut className="h-4 w-4 text-white" />
                 </button>
               )}
 
               <div
-                className="group relative flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-indigo-100 text-sm font-semibold text-indigo-700"
+                className="group relative flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-amber-400/10 text-sm font-semibold text-amber-100 ring-1 ring-amber-500/20"
                 onClick={() => setIsProfileOpen(true)}
               >
                 {avatarUrl ? (
@@ -387,7 +389,7 @@ export function AppShell({
               {!isCollapsed && (
                 <>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-slate-900">
+                    <p className="truncate text-sm font-semibold text-white">
                       {displayName}
                     </p>
                     <p className="mt-0.5 truncate text-xs capitalize text-muted-foreground">
@@ -402,10 +404,10 @@ export function AppShell({
                     aria-label="Sign out"
                     className={cn(
                       buttonVariants({ variant: "ghost", size: "sm" }),
-                      "h-9 w-9 shrink-0 px-0",
+                      "h-9 w-9 shrink-0 px-0 text-white",
                     )}
                   >
-                    <LogOut className="h-4 w-4" />
+                    <LogOut className="h-4 w-4 text-white" />
                   </button>
                 </>
               )}
@@ -426,7 +428,7 @@ export function AppShell({
           >
             <DialogContent className="sm:max-w-sm overflow-hidden p-0">
               {/* Top gradient bar */}
-              <div className="h-1 bg-linear-to-r from-indigo-500 via-violet-500 to-sky-500" />
+              <div className="h-1 bg-linear-to-r from-amber-500 via-orange-500 to-yellow-500" />
 
               <div className="p-5">
                 <DialogHeader className="mb-5">
@@ -442,7 +444,7 @@ export function AppShell({
                   {/* Avatar upload */}
                   <div className="flex flex-col items-center gap-3">
                     <div className="relative">
-                      <div className="h-20 w-20 overflow-hidden rounded-full bg-indigo-100 ring-4 ring-white shadow-md">
+                      <div className="h-20 w-20 overflow-hidden rounded-full bg-amber-400/15 ring-4 ring-amber-500/20 shadow-md">
                         {avatarPreview ? (
                           <img
                             src={avatarPreview}
@@ -450,7 +452,7 @@ export function AppShell({
                             className="h-full w-full object-cover"
                           />
                         ) : (
-                          <div className="flex h-full w-full items-center justify-center text-xl font-semibold text-indigo-600">
+                          <div className="flex h-full w-full items-center justify-center text-xl font-semibold text-amber-600">
                             {initials || "U"}
                           </div>
                         )}
@@ -458,7 +460,7 @@ export function AppShell({
                       <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
-                        className="absolute bottom-0 right-0 flex h-7 w-7 items-center justify-center rounded-full bg-indigo-500 text-white shadow-md transition hover:bg-indigo-600"
+                        className="absolute bottom-0 right-0 flex h-7 w-7 items-center justify-center rounded-full bg-amber-500 text-white shadow-md transition hover:bg-amber-600"
                       >
                         <Camera className="h-3.5 w-3.5" />
                       </button>
@@ -471,14 +473,14 @@ export function AppShell({
                       />
                     </div>
                     {avatarFile && (
-                      <p className="text-xs text-indigo-600 font-medium">
+                      <p className="text-xs text-amber-600 font-medium">
                         {avatarFile.name}
                       </p>
                     )}
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      className="text-xs text-muted-foreground underline underline-offset-2 hover:text-indigo-500 transition"
+                      className="text-xs text-muted-foreground underline underline-offset-2 hover:text-amber-500 transition"
                     >
                       Change photo
                     </button>
@@ -493,7 +495,7 @@ export function AppShell({
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                       placeholder="Enter your full name"
-                      className="bg-slate-50/80"
+                      className="bg-stone-900/70"
                     />
                   </div>
 
@@ -505,7 +507,7 @@ export function AppShell({
                     <Input
                       value={user?.email ?? ""}
                       disabled
-                      className="bg-slate-50/80 text-muted-foreground"
+                      className="bg-stone-900/70 text-muted-foreground"
                     />
                   </div>
 
@@ -514,7 +516,7 @@ export function AppShell({
                     <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                       Role
                     </label>
-                    <div className="flex h-9 items-center rounded-md border border-input bg-slate-50/80 px-3">
+                    <div className="flex h-9 items-center rounded-md border border-input bg-stone-900/70 px-3">
                       <span className="capitalize text-sm text-muted-foreground">
                         {role ?? "—"}
                       </span>
@@ -540,7 +542,7 @@ export function AppShell({
                     "min-w-27.5 transition-all",
                     saveSuccess
                       ? "bg-emerald-500 hover:bg-emerald-500 text-white"
-                      : "bg-indigo-500 hover:bg-indigo-600 text-white",
+                      : "bg-amber-500 hover:bg-amber-600 text-white",
                   )}
                 >
                   {isSaving ? (
@@ -568,10 +570,10 @@ export function AppShell({
           }`}
         >
           <div className="mx-auto max-w-6xl">
-            <header className="mb-8 rounded-2xl border border-white/60 bg-white/70 p-5 shadow-lg shadow-indigo-500/5 backdrop-blur-md">
+            <header className="mb-8 rounded-2xl border border-amber-500/15 bg-stone-950/75 p-5 shadow-xl shadow-amber-500/5 backdrop-blur-md">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
-                  <p className="text-xs font-medium uppercase tracking-wider text-indigo-500">
+                  <p className="text-xs font-medium uppercase tracking-wider text-amber-500">
                     EduVerse
                   </p>
                   <h1 className="text-2xl font-bold tracking-tight gradient-text">

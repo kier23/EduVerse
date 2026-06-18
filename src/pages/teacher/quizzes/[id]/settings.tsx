@@ -142,13 +142,11 @@ export function QuizSettingsPanel({
       />
 
       {/* Drawer */}
-      <aside className="fixed right-0 top-0 z-50 flex h-full w-96 flex-col border-l border-slate-200 bg-white shadow-2xl">
+      <aside className="fixed right-0 top-0 z-50 flex h-full w-full flex-col border-l border-amber-500/15 bg-card/95 shadow-2xl sm:w-96">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+        <div className="flex items-center justify-between border-b border-amber-500/15 px-5 py-4">
           <div>
-            <h2 className="text-sm font-semibold text-slate-900">
-              Quiz Settings
-            </h2>
+            <h2 className="text-sm font-semibold text-white">Quiz Settings</h2>
             <p className="text-xs text-muted-foreground mt-0.5">
               Configure how this quiz behaves
             </p>
@@ -156,7 +154,7 @@ export function QuizSettingsPanel({
           <button
             type="button"
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-slate-100 transition-colors"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-slate-800 transition-colors"
           >
             <X className="h-4 w-4" />
           </button>
@@ -173,7 +171,7 @@ export function QuizSettingsPanel({
                 placeholder="e.g. 30"
                 value={timeLimit}
                 onChange={(e) => setTimeLimit(e.target.value)}
-                className="bg-slate-50/80"
+                className="bg-slate-950/70"
               />
             </Field>
             <Field label="Attempts allowed" hint="Leave empty for unlimited">
@@ -183,7 +181,7 @@ export function QuizSettingsPanel({
                 placeholder="e.g. 1"
                 value={attemptsAllowed}
                 onChange={(e) => setAttemptsAllowed(e.target.value)}
-                className="bg-slate-50/80"
+                className="bg-slate-950/70"
               />
             </Field>
             <Field
@@ -191,7 +189,7 @@ export function QuizSettingsPanel({
               hint="Shown to students before they start"
             >
               <textarea
-                className="flex w-full rounded-md border border-input bg-slate-50/80 px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
+                className="flex w-full rounded-md border border-input bg-slate-950/70 px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
                 rows={3}
                 placeholder="Welcome! Please read all questions carefully…"
                 value={welcomeMessage}
@@ -220,7 +218,7 @@ export function QuizSettingsPanel({
                       "flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all",
                       settings.theme === t.value
                         ? "border-transparent text-white shadow-sm"
-                        : "border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300",
+                        : "border-amber-500/15 bg-card/70 text-foreground hover:border-amber-300/30",
                     )}
                     style={
                       settings.theme === t.value ? { background: t.color } : {}
@@ -266,7 +264,7 @@ export function QuizSettingsPanel({
                   onChange={(e) =>
                     setSettings({ ...settings, primaryColor: e.target.value })
                   }
-                  className="h-7 w-7 cursor-pointer rounded-full border border-slate-200 bg-transparent p-0.5"
+                  className="h-7 w-7 cursor-pointer rounded-full border border-amber-500/15 bg-transparent p-0.5"
                   title="Custom color"
                 />
               </div>
@@ -294,7 +292,7 @@ export function QuizSettingsPanel({
             {/* Banner */}
             <Field label="Banner image">
               <div
-                className="relative flex h-28 w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 hover:border-indigo-300 hover:bg-indigo-50/30 transition-all"
+                className="relative flex h-28 w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-amber-500/15 bg-card/70 hover:border-amber-300/30 hover:bg-amber-400/10 transition-all"
                 onClick={() => bannerRef.current?.click()}
               >
                 {bannerUrl ? (
@@ -304,7 +302,7 @@ export function QuizSettingsPanel({
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                  <div className="flex flex-col items-center gap-1 text-slate-400">
+                  <div className="flex flex-col items-center gap-1 text-muted-foreground">
                     <Upload className="h-6 w-6" />
                     <span className="text-xs">Upload banner</span>
                   </div>
@@ -330,7 +328,7 @@ export function QuizSettingsPanel({
               </div>
               <div className="flex items-center justify-between mt-1">
                 {bannerFile && (
-                  <p className="text-xs text-indigo-600 font-medium">
+                  <p className="text-xs text-amber-600 font-medium">
                     {bannerFile.name} — will upload on save
                   </p>
                 )}
@@ -361,7 +359,7 @@ export function QuizSettingsPanel({
         </div>
 
         {/* Footer */}
-        <div className="border-t border-slate-200 px-5 py-4 flex justify-end gap-2">
+        <div className="border-t border-amber-500/15 px-5 py-4 flex justify-end gap-2">
           <Button
             variant="outline"
             size="sm"
@@ -377,8 +375,8 @@ export function QuizSettingsPanel({
             className={cn(
               "min-w-27.5 transition-all",
               saved
-                ? "bg-emerald-500 hover:bg-emerald-500 text-white"
-                : "bg-indigo-500 hover:bg-indigo-600 text-white",
+                ? "bg-emerald-400/100 hover:bg-emerald-400/100 text-white"
+                : "bg-amber-400/100 hover:bg-amber-600 text-white",
             )}
           >
             {saving ? (
@@ -412,7 +410,7 @@ function Section({
 }) {
   return (
     <div className="space-y-3">
-      <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+      <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
         {title}
       </h3>
       <div className="space-y-3">{children}</div>
@@ -431,7 +429,7 @@ function Field({
 }) {
   return (
     <div className="space-y-1.5">
-      <label className="text-xs font-medium text-slate-700">{label}</label>
+      <label className="text-xs font-medium text-foreground">{label}</label>
       {children}
       {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
     </div>
@@ -450,9 +448,9 @@ function Toggle({
   onChange: (v: boolean) => void;
 }) {
   return (
-    <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50/60 px-3 py-2.5">
+    <div className="flex items-center justify-between rounded-lg border border-amber-500/15 bg-slate-950/60 px-3 py-2.5">
       <div>
-        <p className="text-xs font-medium text-slate-700">{label}</p>
+        <p className="text-xs font-medium text-foreground">{label}</p>
         {hint && (
           <p className="text-[11px] text-muted-foreground mt-0.5">{hint}</p>
         )}
@@ -464,7 +462,7 @@ function Toggle({
         onClick={() => onChange(!checked)}
         className={cn(
           "relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors duration-200",
-          checked ? "bg-indigo-500" : "bg-slate-200",
+          checked ? "bg-amber-400/100" : "bg-muted",
         )}
       >
         <span

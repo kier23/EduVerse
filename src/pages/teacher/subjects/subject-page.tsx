@@ -8,7 +8,9 @@ import {
   ClipboardList,
   ExternalLink,
   FileText,
+  Pencil,
   Plus,
+  Trash2,
   X,
   Search,
   Hash,
@@ -41,9 +43,13 @@ import { AppShell } from "@/layouts/app-shell";
 import {
   createActivity,
   createSubject,
+  deleteActivity,
+  deleteMaterial,
   fetchSubjectActivities,
   fetchSubjectMaterials,
   fetchTeacherSubjects,
+  updateActivityRecord,
+  updateMaterial,
   type Activity,
   type Material,
   type Subject,
@@ -55,14 +61,14 @@ import { useAuth } from "@/providers/auth-provider";
 
 const CARD_COLORS = [
   {
-    icon: "bg-indigo-100 text-indigo-600",
-    badge: "bg-indigo-50 text-indigo-600",
-    arrow: "group-hover:bg-indigo-500",
+    icon: "bg-indigo-100 text-amber-600",
+    badge: "bg-amber-400/10 text-amber-600",
+    arrow: "group-hover:bg-amber-400/100",
   },
   {
     icon: "bg-violet-100 text-violet-600",
-    badge: "bg-violet-50 text-violet-600",
-    arrow: "group-hover:bg-violet-500",
+    badge: "bg-violet-400/10 text-violet-600",
+    arrow: "group-hover:bg-violet-400/100",
   },
   {
     icon: "bg-sky-100    text-sky-600",
@@ -71,8 +77,8 @@ const CARD_COLORS = [
   },
   {
     icon: "bg-emerald-100 text-emerald-600",
-    badge: "bg-emerald-50 text-emerald-600",
-    arrow: "group-hover:bg-emerald-500",
+    badge: "bg-emerald-400/10 text-emerald-600",
+    arrow: "group-hover:bg-emerald-400/100",
   },
   {
     icon: "bg-amber-100  text-amber-600",
@@ -107,19 +113,78 @@ function generateClassCode(): string {
   ).join("");
 }
 
-// ─── Root component — decides whether to show the list or detail view ─────────
+// ─── Drag-and-drop file zone (shared) ────────────────────────────────────────
+
+function FileDropZone({
+  id,
+  file,
+  onFile,
+  dragging,
+  onDragOver,
+  onDragLeave,
+  onDrop,
+}: {
+  id: string;
+  file: File | null;
+  onFile: (f: File) => void;
+  dragging: boolean;
+  onDragOver: (e: React.DragEvent) => void;
+  onDragLeave: () => void;
+  onDrop: (e: React.DragEvent) => void;
+}) {
+  return (
+    <div
+      onDragOver={onDragOver}
+      onDragLeave={onDragLeave}
+      onDrop={onDrop}
+      onClick={() => document.getElementById(id)?.click()}
+      className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed py-8 transition-colors ${
+        dragging
+          ? "border-emerald-400 bg-emerald-400/10"
+          : file
+            ? "border-emerald-300 bg-emerald-400/10/60"
+            : "border-amber-500/15 bg-slate-950/70 hover:border-emerald-300 hover:bg-emerald-400/10"
+      }`}
+    >
+      <input
+        id={id}
+        type="file"
+        className="hidden"
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          if (f) onFile(f);
+        }}
+      />
+      {file ? (
+        <>
+          <FileText className="h-7 w-7 text-emerald-500" />
+          <p className="text-sm font-medium text-emerald-700">{file.name}</p>
+          <p className="text-xs text-muted-foreground">
+            {(file.size / 1024).toFixed(0)} KB · Click to change
+          </p>
+        </>
+      ) : (
+        <>
+          <FileText className="h-7 w-7 text-slate-300" />
+          <p className="text-sm font-medium text-slate-300">
+            Drag & drop a file here
+          </p>
+          <p className="text-xs text-muted-foreground">or click to browse</p>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ─── Root component ───────────────────────────────────────────────────────────
 
 export function TeacherSubjectPage() {
   const { subjectId } = useParams();
-
-  if (subjectId) {
-    return <SubjectDetailView subjectId={subjectId} />;
-  }
-
+  if (subjectId) return <SubjectDetailView subjectId={subjectId} />;
   return <SubjectListView />;
 }
 
-// ─── List view — all subjects with search + create dialog ─────────────────────
+// ─── List view ────────────────────────────────────────────────────────────────
 
 function SubjectListView() {
   const { user } = useAuth();
@@ -128,8 +193,6 @@ function SubjectListView() {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-
-  // Create dialog state
   const [createOpen, setCreateOpen] = useState(false);
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState("");
@@ -192,29 +255,25 @@ function SubjectListView() {
 
   return (
     <AppShell title="Subjects">
-      {/* ── Toolbar ──────────────────────────────────────────────────────────── */}
       <div className="mb-6 flex flex-wrap items-center gap-3">
-        {/* Search */}
         <div className="relative flex-1 min-w-48 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
           <Input
             placeholder="Search subjects…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 pr-8 bg-white/80 backdrop-blur-sm"
+            className="pl-9 pr-8 bg-stone-950/75 backdrop-blur-sm"
           />
           {search && (
             <button
               type="button"
               onClick={() => setSearch("")}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 transition-colors"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-400 transition-colors"
             >
               <X className="h-3.5 w-3.5" />
             </button>
           )}
         </div>
-
-        {/* Count */}
         <span className="text-sm text-muted-foreground">
           {loading ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -226,12 +285,11 @@ function SubjectListView() {
             </>
           )}
         </span>
-
         <div className="ml-auto">
           <Button
             size="sm"
             onClick={openCreate}
-            className="bg-indigo-500 hover:bg-indigo-600 text-white gap-1.5"
+            className="bg-amber-400/100 hover:bg-amber-600 text-white gap-1.5"
           >
             <Plus className="h-4 w-4" />
             New Subject
@@ -239,21 +297,19 @@ function SubjectListView() {
         </div>
       </div>
 
-      {/* ── Loading ───────────────────────────────────────────────────────────── */}
       {loading && (
         <div className="flex items-center justify-center py-24">
           <Loader2 className="h-6 w-6 animate-spin text-indigo-400" />
         </div>
       )}
 
-      {/* ── Empty — no subjects ───────────────────────────────────────────────── */}
       {!loading && subjects.length === 0 && (
-        <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-slate-200 bg-white/50 py-24 text-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-50">
+        <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-amber-500/15 bg-white/50 py-24 text-center">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-400/10">
             <BookOpen className="h-7 w-7 text-indigo-400" />
           </div>
           <div>
-            <p className="font-semibold text-slate-900">No subjects yet</p>
+            <p className="font-semibold text-white">No subjects yet</p>
             <p className="mt-1 text-sm text-muted-foreground max-w-xs">
               Create your first subject to start managing classes.
             </p>
@@ -261,7 +317,7 @@ function SubjectListView() {
           <Button
             size="sm"
             onClick={openCreate}
-            className="bg-indigo-500 hover:bg-indigo-600 text-white gap-1.5 mt-2"
+            className="bg-amber-400/100 hover:bg-amber-600 text-white gap-1.5 mt-2"
           >
             <Plus className="h-4 w-4" />
             Create Subject
@@ -269,24 +325,22 @@ function SubjectListView() {
         </div>
       )}
 
-      {/* ── Empty — no search results ─────────────────────────────────────────── */}
       {!loading && subjects.length > 0 && filtered.length === 0 && (
-        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-slate-200 bg-white/50 py-20 text-center">
+        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-amber-500/15 bg-white/50 py-20 text-center">
           <Search className="h-8 w-8 text-slate-300" />
-          <p className="font-semibold text-slate-700">
+          <p className="font-semibold text-slate-200">
             No results for "{search}"
           </p>
           <button
             type="button"
             onClick={() => setSearch("")}
-            className="text-sm text-indigo-500 hover:underline"
+            className="text-sm text-amber-500 hover:underline"
           >
             Clear search
           </button>
         </div>
       )}
 
-      {/* ── Subject grid ──────────────────────────────────────────────────────── */}
       {!loading && filtered.length > 0 && (
         <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
           {filtered.map((subject) => {
@@ -303,7 +357,6 @@ function SubjectListView() {
         </div>
       )}
 
-      {/* ── Create dialog ─────────────────────────────────────────────────────── */}
       <Dialog
         open={createOpen}
         onOpenChange={(o) => {
@@ -311,7 +364,7 @@ function SubjectListView() {
         }}
       >
         <DialogContent className="sm:max-w-md overflow-hidden p-0">
-          <div className="h-1 bg-linear-to-r from-indigo-500 via-violet-500 to-sky-500" />
+          <div className="h-1 bg-linear-to-r from-amber-500 via-orange-500 to-yellow-500" />
           <div className="p-6">
             <DialogHeader className="mb-5">
               <DialogTitle>New Subject</DialogTitle>
@@ -319,7 +372,6 @@ function SubjectListView() {
                 Fill in the details below. Students join using the class code.
               </DialogDescription>
             </DialogHeader>
-
             <div className="space-y-4">
               <div className="space-y-1.5">
                 <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -331,10 +383,9 @@ function SubjectListView() {
                   onChange={(e) =>
                     setForm({ ...form, subject_name: e.target.value })
                   }
-                  className="bg-slate-50/80"
+                  className="bg-slate-950/70"
                 />
               </div>
-
               <div className="space-y-1.5">
                 <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                   Class Code <span className="text-red-400">*</span>
@@ -345,7 +396,7 @@ function SubjectListView() {
                     <Input
                       value={form.subject_code}
                       readOnly
-                      className="pl-8 bg-slate-50/80 font-mono tracking-widest text-sm font-semibold text-slate-700 cursor-default select-all"
+                      className="pl-8 bg-slate-950/70 font-mono tracking-widest text-sm font-semibold text-slate-200 cursor-default select-all"
                     />
                   </div>
                   <Button
@@ -364,7 +415,6 @@ function SubjectListView() {
                   Auto-generated 6-character code. Students use this to enroll.
                 </p>
               </div>
-
               <div className="space-y-1.5">
                 <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                   Description (optional)
@@ -376,10 +426,9 @@ function SubjectListView() {
                     setForm({ ...form, description: e.target.value })
                   }
                   rows={3}
-                  className="bg-slate-50/80 resize-none"
+                  className="bg-slate-950/70 resize-none"
                 />
               </div>
-
               {createError && (
                 <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-600">
                   <AlertCircle className="h-3.5 w-3.5 shrink-0" />
@@ -388,7 +437,6 @@ function SubjectListView() {
               )}
             </div>
           </div>
-
           <DialogFooter className="px-6 pb-6 pt-0">
             <Button
               variant="outline"
@@ -406,7 +454,7 @@ function SubjectListView() {
                 !form.subject_name.trim() ||
                 !form.subject_code.trim()
               }
-              className="bg-indigo-500 hover:bg-indigo-600 text-white min-w-28"
+              className="bg-amber-400/100 hover:bg-amber-600 text-white min-w-28"
             >
               {creating ? (
                 <>
@@ -436,14 +484,12 @@ function SubjectCard({
   onClick: () => void;
 }) {
   const c = colorFor(colorIndex);
-
   return (
     <button
       type="button"
       onClick={onClick}
-      className="group relative flex flex-col rounded-2xl border border-white/60 bg-white/70 p-5 text-left shadow-lg shadow-indigo-500/5 backdrop-blur-md transition-all hover:shadow-indigo-500/10 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+      className="group relative flex flex-col rounded-2xl border border-amber-500/15 bg-stone-950/70 p-5 text-left shadow-lg shadow-indigo-500/5 backdrop-blur-md transition-all hover:shadow-indigo-500/10 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
     >
-      {/* Icon + code badge */}
       <div className="mb-4 flex items-start justify-between gap-3">
         <div
           className={`flex h-11 w-11 items-center justify-center rounded-xl text-base font-bold ${c.icon}`}
@@ -458,13 +504,9 @@ function SubjectCard({
           </span>
         )}
       </div>
-
-      {/* Name */}
-      <h3 className="mb-1.5 line-clamp-2 text-sm font-semibold leading-snug text-slate-900 group-hover:text-indigo-700 transition-colors">
+      <h3 className="mb-1.5 line-clamp-2 text-sm font-semibold leading-snug text-white group-hover:text-amber-700 transition-colors">
         {subject.subject_name ?? "Untitled Subject"}
       </h3>
-
-      {/* Description */}
       {subject.description ? (
         <p className="mb-4 flex-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
           {subject.description}
@@ -474,8 +516,6 @@ function SubjectCard({
           No description
         </p>
       )}
-
-      {/* Footer */}
       <div className="mt-auto flex items-center justify-between border-t border-slate-100 pt-3">
         <span className="flex items-center gap-1 text-xs text-muted-foreground">
           <Users className="h-3.5 w-3.5" />
@@ -495,27 +535,57 @@ function SubjectCard({
 
 function SubjectDetailView({ subjectId }: { subjectId: string }) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [materials, setMaterials] = useState<Material[]>([]);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loadingSubject, setLoadingSubject] = useState(true);
   const [loadingPosts, setLoadingPosts] = useState(true);
+  const [status, setStatus] = useState("");
+  const [activeComposer, setActiveComposer] = useState<
+    "activity" | "material" | null
+  >(null);
 
-  // Activity form state
+  // ── Activity create form ──────────────────────────────────────────────────
   const [activityTitle, setActivityTitle] = useState("");
   const [activityInstructions, setActivityInstructions] = useState("");
   const [activityDate, setActivityDate] = useState("");
+  const [activityFile, setActivityFile] = useState<File | null>(null);
+  const [activityDragging, setActivityDragging] = useState(false);
 
-  // Material form state
+  // ── Material create form ──────────────────────────────────────────────────
   const [materialTitle, setMaterialTitle] = useState("");
   const [materialDescription, setMaterialDescription] = useState("");
   const [materialFile, setMaterialFile] = useState<File | null>(null);
   const [materialDragging, setMaterialDragging] = useState(false);
 
-  const [status, setStatus] = useState("");
-  const [activeComposer, setActiveComposer] = useState<
-    "activity" | "material" | null
-  >(null);
+  // ── Edit activity dialog ──────────────────────────────────────────────────
+  const [editActivity, setEditActivity] = useState<Activity | null>(null);
+  const [editActTitle, setEditActTitle] = useState("");
+  const [editActInstructions, setEditActInstructions] = useState("");
+  const [editActDate, setEditActDate] = useState("");
+  const [editActPoints, setEditActPoints] = useState(100);
+  const [editActFile, setEditActFile] = useState<File | null>(null);
+  const [editActDragging, setEditActDragging] = useState(false);
+  const [editActRemoveFile, setEditActRemoveFile] = useState(false);
+  const [savingActivity, setSavingActivity] = useState(false);
+
+  // ── Edit material dialog ──────────────────────────────────────────────────
+  const [editMaterial, setEditMaterial] = useState<Material | null>(null);
+  const [editMatTitle, setEditMatTitle] = useState("");
+  const [editMatDescription, setEditMatDescription] = useState("");
+  const [editMatFile, setEditMatFile] = useState<File | null>(null);
+  const [editMatDragging, setEditMatDragging] = useState(false);
+  const [editMatRemoveFile, setEditMatRemoveFile] = useState(false);
+  const [savingMaterial, setSavingMaterial] = useState(false);
+
+  // ── Delete confirm dialog ─────────────────────────────────────────────────
+  const [confirmDelete, setConfirmDelete] = useState<{
+    type: "activity" | "material";
+    id: string;
+    label: string;
+  } | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const subject = useMemo(
     () => subjects.find((item) => item.id === subjectId) ?? null,
@@ -524,9 +594,9 @@ function SubjectDetailView({ subjectId }: { subjectId: string }) {
 
   const nextDueActivity = useMemo(
     () =>
-      activities.find((activity) => {
-        if (!activity.due_date) return false;
-        return new Date(activity.due_date).getTime() >= Date.now();
+      activities.find((a) => {
+        if (!a.due_date) return false;
+        return new Date(a.due_date).getTime() >= Date.now();
       }),
     [activities],
   );
@@ -544,7 +614,7 @@ function SubjectDetailView({ subjectId }: { subjectId: string }) {
 
   useEffect(() => {
     let isMounted = true;
-    const loadSubject = async () => {
+    const load = async () => {
       if (!user) return;
       setLoadingSubject(true);
       const nextSubjects = await fetchTeacherSubjects(user.id);
@@ -552,7 +622,7 @@ function SubjectDetailView({ subjectId }: { subjectId: string }) {
       setSubjects(nextSubjects);
       setLoadingSubject(false);
     };
-    loadSubject();
+    load();
     return () => {
       isMounted = false;
     };
@@ -561,6 +631,8 @@ function SubjectDetailView({ subjectId }: { subjectId: string }) {
   useEffect(() => {
     loadSubjectPosts(subjectId);
   }, [subjectId]);
+
+  // ── Handlers ─────────────────────────────────────────────────────────────
 
   const onCreateActivity = async (event: FormEvent) => {
     event.preventDefault();
@@ -573,10 +645,12 @@ function SubjectDetailView({ subjectId }: { subjectId: string }) {
       type: "assignment",
       due_date: activityDate,
       points: 100,
+      file: activityFile ?? undefined,
     });
     setActivityTitle("");
     setActivityInstructions("");
     setActivityDate("");
+    setActivityFile(null);
     setStatus("Activity posted.");
     setActiveComposer(null);
     await loadSubjectPosts(subjectId);
@@ -600,6 +674,78 @@ function SubjectDetailView({ subjectId }: { subjectId: string }) {
     await loadSubjectPosts(subjectId);
   };
 
+  const openEditActivity = (a: Activity) => {
+    setEditActivity(a);
+    setEditActTitle(a.title ?? "");
+    setEditActInstructions(a.instructions ?? "");
+    setEditActDate(a.due_date ?? "");
+    setEditActPoints(a.points ?? 100);
+    setEditActFile(null);
+    setEditActRemoveFile(false);
+  };
+
+  const onSaveActivity = async () => {
+    if (!editActivity || !subjectId) return;
+    setSavingActivity(true);
+    await updateActivityRecord(editActivity.id, {
+      title: editActTitle,
+      instructions: editActInstructions,
+      due_date: editActDate,
+      points: editActPoints,
+      file: editActFile ?? undefined,
+      subject_id: subjectId,
+      old_file_url: editActivity.file_url,
+      remove_file: editActRemoveFile,
+    });
+    setEditActRemoveFile(false);
+    setSavingActivity(false);
+    setEditActivity(null);
+    setStatus("Activity updated.");
+    await loadSubjectPosts(subjectId);
+  };
+
+  const openEditMaterial = (m: Material) => {
+    setEditMaterial(m);
+    setEditMatTitle(m.title ?? "");
+    setEditMatDescription(m.description ?? "");
+    setEditMatFile(null);
+    setEditMatRemoveFile(false);
+  };
+
+  const onSaveMaterial = async () => {
+    if (!editMaterial || !subjectId) return;
+    setSavingMaterial(true);
+    await updateMaterial(editMaterial.id, {
+      title: editMatTitle,
+      description: editMatDescription,
+      file: editMatFile ?? undefined,
+      subject_id: subjectId,
+      old_file_url: editMaterial.file_url,
+      remove_file: editMatRemoveFile,
+    });
+    setEditMatRemoveFile(false);
+    setSavingMaterial(false);
+    setEditMaterial(null);
+    setStatus("Material updated.");
+    await loadSubjectPosts(subjectId);
+  };
+
+  const onConfirmDelete = async () => {
+    if (!confirmDelete) return;
+    setDeleting(true);
+    if (confirmDelete.type === "activity") {
+      await deleteActivity(confirmDelete.id);
+    } else {
+      await deleteMaterial(confirmDelete.id);
+    }
+    setDeleting(false);
+    setConfirmDelete(null);
+    setStatus(
+      `${confirmDelete.type === "activity" ? "Activity" : "Material"} deleted.`,
+    );
+    await loadSubjectPosts(subjectId);
+  };
+
   if (!loadingSubject && subjects.length > 0 && !subject) {
     return <Navigate to="/teacher/subjects" replace />;
   }
@@ -610,12 +756,12 @@ function SubjectDetailView({ subjectId }: { subjectId: string }) {
       <div className="mb-6">
         <Link
           to="/teacher/subjects"
-          className="mb-3 inline-flex items-center text-sm font-medium text-muted-foreground hover:text-indigo-600"
+          className="mb-3 inline-flex items-center text-sm font-medium text-muted-foreground hover:text-amber-600"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to subjects
         </Link>
-        <p className="text-sm font-semibold uppercase tracking-wider text-indigo-600">
+        <p className="text-sm font-semibold uppercase tracking-wider text-amber-600">
           {subject?.subject_code ?? "Loading subject"}
         </p>
         <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
@@ -624,7 +770,7 @@ function SubjectDetailView({ subjectId }: { subjectId: string }) {
       </div>
 
       {/* Stats */}
-      <div className="mb-6 grid gap-4 md:grid-cols-3">
+      <div className="mb-6 grid gap-4 grid-cols-2 md:grid-cols-3">
         <StatCard
           title="Materials"
           value={loadingPosts ? "..." : materials.length}
@@ -650,7 +796,7 @@ function SubjectDetailView({ subjectId }: { subjectId: string }) {
 
       {/* Status toast */}
       {status ? (
-        <div className="mb-6 flex items-center gap-2 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
+        <div className="mb-6 flex items-center gap-2 rounded-xl bg-emerald-400/10 px-4 py-3 text-sm font-medium text-emerald-700">
           <CheckCircle2 className="h-4 w-4" />
           {status}
         </div>
@@ -689,7 +835,7 @@ function SubjectDetailView({ subjectId }: { subjectId: string }) {
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <CardTitle className="flex items-center gap-2">
-                    <ClipboardList className="h-5 w-5 text-indigo-600" />
+                    <ClipboardList className="h-5 w-5 text-amber-600" />
                     Create Activity
                   </CardTitle>
                   <CardDescription>
@@ -727,10 +873,39 @@ function SubjectDetailView({ subjectId }: { subjectId: string }) {
                   type="date"
                   required
                 />
-                <Button type="submit">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Post activity
-                </Button>
+                <FileDropZone
+                  id="activity-file-input"
+                  file={activityFile}
+                  onFile={setActivityFile}
+                  dragging={activityDragging}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setActivityDragging(true);
+                  }}
+                  onDragLeave={() => setActivityDragging(false)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setActivityDragging(false);
+                    const f = e.dataTransfer.files?.[0];
+                    if (f) setActivityFile(f);
+                  }}
+                />
+                <div className="flex items-center gap-3">
+                  {activityFile && (
+                    <button
+                      type="button"
+                      onClick={() => setActivityFile(null)}
+                      className="text-xs text-rose-500 hover:underline"
+                    >
+                      Remove file
+                    </button>
+                  )}
+
+                  <Button type="submit">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Post activity
+                  </Button>
+                </div>
               </form>
             </CardContent>
           </Card>
@@ -778,9 +953,11 @@ function SubjectDetailView({ subjectId }: { subjectId: string }) {
                   placeholder="Description (optional)"
                   rows={3}
                 />
-
-                {/* Drag-and-drop file zone */}
-                <div
+                <FileDropZone
+                  id="material-file-input"
+                  file={materialFile}
+                  onFile={setMaterialFile}
+                  dragging={materialDragging}
                   onDragOver={(e) => {
                     e.preventDefault();
                     setMaterialDragging(true);
@@ -789,53 +966,10 @@ function SubjectDetailView({ subjectId }: { subjectId: string }) {
                   onDrop={(e) => {
                     e.preventDefault();
                     setMaterialDragging(false);
-                    const file = e.dataTransfer.files?.[0];
-                    if (file) setMaterialFile(file);
+                    const f = e.dataTransfer.files?.[0];
+                    if (f) setMaterialFile(f);
                   }}
-                  onClick={() =>
-                    document.getElementById("material-file-input")?.click()
-                  }
-                  className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed py-8 transition-colors ${
-                    materialDragging
-                      ? "border-emerald-400 bg-emerald-50"
-                      : materialFile
-                        ? "border-emerald-300 bg-emerald-50/60"
-                        : "border-slate-200 bg-slate-50 hover:border-emerald-300 hover:bg-emerald-50/40"
-                  }`}
-                >
-                  <input
-                    id="material-file-input"
-                    type="file"
-                    className="hidden"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) setMaterialFile(file);
-                    }}
-                  />
-                  {materialFile ? (
-                    <>
-                      <FileText className="h-7 w-7 text-emerald-500" />
-                      <p className="text-sm font-medium text-emerald-700">
-                        {materialFile.name}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {(materialFile.size / 1024).toFixed(0)} KB · Click to
-                        change
-                      </p>
-                    </>
-                  ) : (
-                    <>
-                      <FileText className="h-7 w-7 text-slate-300" />
-                      <p className="text-sm font-medium text-slate-600">
-                        Drag & drop a file here
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        or click to browse
-                      </p>
-                    </>
-                  )}
-                </div>
-
+                />
                 <Button type="submit" disabled={!materialFile}>
                   <Plus className="mr-2 h-4 w-4" />
                   Upload material
@@ -846,8 +980,9 @@ function SubjectDetailView({ subjectId }: { subjectId: string }) {
         </div>
       )}
 
-      {/* Materials + Activities grid */}
+      {/* ── Materials + Activities grid ───────────────────────────────────────── */}
       <div className="grid gap-6 xl:grid-cols-2">
+        {/* Materials */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -864,35 +999,59 @@ function SubjectDetailView({ subjectId }: { subjectId: string }) {
                 {[1, 2].map((n) => (
                   <div
                     key={n}
-                    className="h-24 animate-pulse rounded-xl bg-white/60"
+                    className="h-24 animate-pulse rounded-xl bg-slate-900/65"
                   />
                 ))}
               </div>
             ) : materials.length === 0 ? (
-              <p className="rounded-xl border border-dashed border-emerald-200 bg-white/60 p-4 text-sm text-muted-foreground">
+              <p className="rounded-xl border border-dashed border-emerald-200 bg-slate-900/65 p-4 text-sm text-muted-foreground">
                 No materials uploaded yet.
               </p>
             ) : (
               materials.map((material) => (
                 <ListItemCard key={material.id}>
                   <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <p className="truncate font-medium">{material.title}</p>
                       <p className="mt-1 text-sm text-muted-foreground">
                         {material.description}
                       </p>
                     </div>
-                    {material.file_url && (
-                      <a
-                        href={material.file_url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex shrink-0 items-center text-sm font-medium text-indigo-600 hover:underline"
+                    <div className="flex shrink-0 items-center gap-2">
+                      {material.file_url && (
+                        <a
+                          href={material.file_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center text-sm font-medium text-amber-600 hover:underline"
+                        >
+                          Open
+                          <ExternalLink className="ml-1 h-3.5 w-3.5" />
+                        </a>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => openEditMaterial(material)}
+                        className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-slate-200 transition-colors"
+                        title="Edit material"
                       >
-                        Open
-                        <ExternalLink className="ml-1 h-3.5 w-3.5" />
-                      </a>
-                    )}
+                        <Pencil className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setConfirmDelete({
+                            type: "material",
+                            id: material.id,
+                            label: material.title ?? "this material",
+                          })
+                        }
+                        className="rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-colors"
+                        title="Delete material"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
                   </div>
                 </ListItemCard>
               ))
@@ -900,6 +1059,7 @@ function SubjectDetailView({ subjectId }: { subjectId: string }) {
           </CardContent>
         </Card>
 
+        {/* Activities */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -916,28 +1076,79 @@ function SubjectDetailView({ subjectId }: { subjectId: string }) {
                 {[1, 2].map((n) => (
                   <div
                     key={n}
-                    className="h-24 animate-pulse rounded-xl bg-white/60"
+                    className="h-24 animate-pulse rounded-xl bg-slate-900/65"
                   />
                 ))}
               </div>
             ) : activities.length === 0 ? (
-              <p className="rounded-xl border border-dashed border-violet-200 bg-white/60 p-4 text-sm text-muted-foreground">
+              <p className="rounded-xl border border-dashed border-violet-200 bg-slate-900/65 p-4 text-sm text-muted-foreground">
                 No activities posted yet.
               </p>
             ) : (
               activities.map((activity) => (
                 <ListItemCard key={activity.id}>
-                  <p className="font-medium">{activity.title}</p>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {activity.instructions}
-                  </p>
-                  <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                    <span className="rounded-full bg-violet-50 px-2.5 py-1 text-violet-700">
-                      Due: {activity.due_date ?? "No due date"}
-                    </span>
-                    <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-indigo-700">
-                      {activity.points ?? 0} points
-                    </span>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium">{activity.title}</p>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {activity.instructions}
+                      </p>
+                      <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                        <span className="rounded-full bg-violet-400/10 px-2.5 py-1 text-violet-700">
+                          Due: {activity.due_date ?? "No due date"}
+                        </span>
+                        <span className="rounded-full bg-amber-400/10 px-2.5 py-1 text-amber-700">
+                          {activity.points ?? 0} points
+                        </span>
+                        {activity.file_url && (
+                          <a
+                            href={activity.file_url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center rounded-full bg-sky-50 px-2.5 py-1 text-sky-700 hover:underline"
+                          >
+                            Attachment
+                            <ExternalLink className="ml-1 h-3 w-3" />
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          navigate(
+                            `/teacher/activities/${activity.id}/responses`,
+                          )
+                        }
+                        className="rounded-lg p-1.5 text-slate-400 hover:bg-amber-400/10 hover:text-amber-600 transition-colors"
+                        title="View responses"
+                      >
+                        <ClipboardList className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => openEditActivity(activity)}
+                        className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-slate-200 transition-colors"
+                        title="Edit activity"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setConfirmDelete({
+                            type: "activity",
+                            id: activity.id,
+                            label: activity.title ?? "this activity",
+                          })
+                        }
+                        className="rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-colors"
+                        title="Delete activity"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
                   </div>
                 </ListItemCard>
               ))
@@ -945,6 +1156,327 @@ function SubjectDetailView({ subjectId }: { subjectId: string }) {
           </CardContent>
         </Card>
       </div>
+
+      {/* ── Edit activity dialog ──────────────────────────────────────────────── */}
+      <Dialog
+        open={!!editActivity}
+        onOpenChange={(o) => {
+          if (!o) setEditActivity(null);
+        }}
+      >
+        <DialogContent className="sm:max-w-md overflow-hidden p-0">
+          <div className="h-1 bg-linear-to-r from-indigo-500 to-violet-500" />
+          <div className="p-6">
+            <DialogHeader className="mb-4">
+              <DialogTitle>Edit Activity</DialogTitle>
+              <DialogDescription>
+                Update the activity details below.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3">
+              <Input
+                value={editActTitle}
+                onChange={(e) => setEditActTitle(e.target.value)}
+                placeholder="Activity title"
+              />
+              <Textarea
+                value={editActInstructions}
+                onChange={(e) => setEditActInstructions(e.target.value)}
+                placeholder="Instructions"
+                rows={3}
+              />
+              <Input
+                value={editActDate}
+                onChange={(e) => setEditActDate(e.target.value)}
+                type="date"
+              />
+              <Input
+                value={editActPoints}
+                onChange={(e) => setEditActPoints(Number(e.target.value))}
+                type="number"
+                min={0}
+                placeholder="Points"
+              />
+              <p className="text-xs text-muted-foreground">
+                Upload a new file to replace the existing attachment (optional).
+              </p>
+              {editActivity?.file_url && !editActFile && !editActRemoveFile && (
+                <div className="flex items-center gap-2 rounded-lg border border-amber-500/15 bg-slate-950/70 px-3 py-2 text-sm">
+                  <FileText className="h-4 w-4 shrink-0 text-indigo-400" />
+                  <span className="flex-1 truncate text-slate-200">
+                    Current attachment
+                  </span>
+                  <a
+                    href={editActivity.file_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="shrink-0 text-amber-600 hover:underline"
+                  >
+                    Open <ExternalLink className="inline h-3 w-3" />
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => setEditActRemoveFile(true)}
+                    className="ml-1 rounded p-0.5 text-slate-400 hover:bg-rose-50 hover:text-rose-500 transition-colors"
+                    title="Remove file"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              )}
+              {editActRemoveFile && (
+                <div className="flex items-center gap-2 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-600">
+                  <AlertCircle className="h-4 w-4 shrink-0" />
+                  <span className="flex-1">
+                    Attachment will be removed on save.
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setEditActRemoveFile(false)}
+                    className="text-xs underline hover:no-underline"
+                  >
+                    Undo
+                  </button>
+                </div>
+              )}
+              <p className="text-xs text-muted-foreground">
+                {editActivity?.file_url && !editActRemoveFile
+                  ? "Upload a new file to replace the existing attachment."
+                  : "Attach a file to this activity (optional)."}
+              </p>
+              <FileDropZone
+                id="edit-activity-file-input"
+                file={editActFile}
+                onFile={setEditActFile}
+                dragging={editActDragging}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setEditActDragging(true);
+                }}
+                onDragLeave={() => setEditActDragging(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setEditActDragging(false);
+                  const f = e.dataTransfer.files?.[0];
+                  if (f) setEditActFile(f);
+                }}
+              />
+              {editActFile && (
+                <button
+                  type="button"
+                  onClick={() => setEditActFile(null)}
+                  className="text-xs text-rose-500 hover:underline"
+                >
+                  Remove new file
+                </button>
+              )}
+            </div>
+          </div>
+          <DialogFooter className="px-6 pb-6 pt-0">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setEditActivity(null)}
+              disabled={savingActivity}
+            >
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              onClick={onSaveActivity}
+              disabled={savingActivity}
+              className="bg-amber-400/100 hover:bg-amber-600 text-white min-w-24"
+            >
+              {savingActivity ? (
+                <>
+                  <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                  Saving…
+                </>
+              ) : (
+                "Save changes"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Edit material dialog ──────────────────────────────────────────────── */}
+      <Dialog
+        open={!!editMaterial}
+        onOpenChange={(o) => {
+          if (!o) setEditMaterial(null);
+        }}
+      >
+        <DialogContent className="sm:max-w-md overflow-hidden p-0">
+          <div className="h-1 bg-linear-to-r from-emerald-500 to-sky-500" />
+          <div className="p-6">
+            <DialogHeader className="mb-4">
+              <DialogTitle>Edit Material</DialogTitle>
+              <DialogDescription>
+                Update the material details below.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3">
+              <Input
+                value={editMatTitle}
+                onChange={(e) => setEditMatTitle(e.target.value)}
+                placeholder="Material title"
+              />
+              <Textarea
+                value={editMatDescription}
+                onChange={(e) => setEditMatDescription(e.target.value)}
+                placeholder="Description"
+                rows={3}
+              />
+              {editMaterial?.file_url && !editMatFile && !editMatRemoveFile && (
+                <div className="flex items-center gap-2 rounded-lg border border-amber-500/15 bg-slate-950/70 px-3 py-2 text-sm">
+                  <FileText className="h-4 w-4 shrink-0 text-emerald-500" />
+                  <span className="flex-1 truncate text-slate-200">
+                    Current file
+                  </span>
+                  <a
+                    href={editMaterial.file_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="shrink-0 text-amber-600 hover:underline"
+                  >
+                    Open <ExternalLink className="inline h-3 w-3" />
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => setEditMatRemoveFile(true)}
+                    className="ml-1 rounded p-0.5 text-slate-400 hover:bg-rose-50 hover:text-rose-500 transition-colors"
+                    title="Remove file"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              )}
+              {editMatRemoveFile && (
+                <div className="flex items-center gap-2 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-600">
+                  <AlertCircle className="h-4 w-4 shrink-0" />
+                  <span className="flex-1">File will be removed on save.</span>
+                  <button
+                    type="button"
+                    onClick={() => setEditMatRemoveFile(false)}
+                    className="text-xs underline hover:no-underline"
+                  >
+                    Undo
+                  </button>
+                </div>
+              )}
+              <p className="text-xs text-muted-foreground">
+                {editMaterial?.file_url && !editMatRemoveFile
+                  ? "Upload a new file to replace the existing one."
+                  : "Attach a file to this material (optional)."}
+              </p>
+              <FileDropZone
+                id="edit-material-file-input"
+                file={editMatFile}
+                onFile={setEditMatFile}
+                dragging={editMatDragging}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setEditMatDragging(true);
+                }}
+                onDragLeave={() => setEditMatDragging(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setEditMatDragging(false);
+                  const f = e.dataTransfer.files?.[0];
+                  if (f) setEditMatFile(f);
+                }}
+              />
+              {editMatFile && (
+                <button
+                  type="button"
+                  onClick={() => setEditMatFile(null)}
+                  className="text-xs text-rose-500 hover:underline"
+                >
+                  Remove new file
+                </button>
+              )}
+              <p className="text-xs text-muted-foreground">
+                Upload a new file to replace the existing one (optional).
+              </p>
+            </div>
+          </div>
+          <DialogFooter className="px-6 pb-6 pt-0">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setEditMaterial(null)}
+              disabled={savingMaterial}
+            >
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              onClick={onSaveMaterial}
+              disabled={savingMaterial}
+              className="bg-emerald-400/100 hover:bg-emerald-600 text-white min-w-24"
+            >
+              {savingMaterial ? (
+                <>
+                  <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                  Saving…
+                </>
+              ) : (
+                "Save changes"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Delete confirm dialog ─────────────────────────────────────────────── */}
+      <Dialog
+        open={!!confirmDelete}
+        onOpenChange={(o) => {
+          if (!o) setConfirmDelete(null);
+        }}
+      >
+        <DialogContent className="sm:max-w-sm overflow-hidden p-0">
+          <div className="h-1 bg-rose-500" />
+          <div className="p-6">
+            <DialogHeader className="mb-4">
+              <DialogTitle>
+                Delete{" "}
+                {confirmDelete?.type === "activity" ? "Activity" : "Material"}?
+              </DialogTitle>
+              <DialogDescription>
+                "{confirmDelete?.label}" will be permanently deleted. This
+                cannot be undone.
+              </DialogDescription>
+            </DialogHeader>
+          </div>
+          <DialogFooter className="px-6 pb-6 pt-0">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setConfirmDelete(null)}
+              disabled={deleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              onClick={onConfirmDelete}
+              disabled={deleting}
+              className="bg-rose-500 hover:bg-rose-600 text-white min-w-24"
+            >
+              {deleting ? (
+                <>
+                  <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                  Deleting…
+                </>
+              ) : (
+                "Delete"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AppShell>
   );
 }

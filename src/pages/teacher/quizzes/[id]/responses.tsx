@@ -100,28 +100,28 @@ export default function QuizResponsesPage() {
   const allAnswers = Object.values(attemptAnswers).flat();
 
   return (
-    <div className="flex h-screen flex-col bg-slate-50/80">
+    <div className="flex h-screen flex-col bg-slate-950/70">
       {/* Top bar */}
-      <header className="flex items-center gap-3 border-b border-slate-200 bg-white/80 px-6 py-3 backdrop-blur-md">
+      <header className="flex items-center gap-2 border-b border-amber-500/15 bg-stone-950/75 px-4 py-3 backdrop-blur-md sm:gap-3 sm:px-6">
         <button
           type="button"
           onClick={() => navigate(`/teacher/quizzes/${quizId}/edit`)}
-          className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-slate-100 transition-colors"
+          className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-slate-800 transition-colors shrink-0"
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
-        <div className="flex-1">
-          <p className="text-[10px] uppercase tracking-widest text-indigo-500 font-medium">
+        <div className="flex-1 min-w-0">
+          <p className="text-[10px] uppercase tracking-widest text-amber-500 font-medium">
             Quiz Responses
           </p>
-          <h1 className="text-sm font-semibold text-slate-900">
+          <h1 className="text-sm font-semibold text-white truncate">
             Student Submissions
           </h1>
         </div>
         <button
           type="button"
           onClick={() => navigate(`/teacher/quizzes/${quizId}/edit`)}
-          className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-muted-foreground hover:bg-slate-50 transition-colors"
+          className="hidden sm:flex items-center gap-1.5 rounded-lg border border-amber-500/15 px-3 py-1.5 text-xs text-muted-foreground hover:bg-slate-950/70 transition-colors"
         >
           Back to editor
         </button>
@@ -165,9 +165,9 @@ export default function QuizResponsesPage() {
 
               {/* Responses table */}
               {attempts.length === 0 ? (
-                <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-slate-200 bg-white/50 py-20 text-center">
+                <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-amber-500/15 bg-white/50 py-20 text-center">
                   <Users className="h-10 w-10 text-slate-200" />
-                  <p className="font-semibold text-slate-700">
+                  <p className="font-semibold text-slate-200">
                     No responses yet
                   </p>
                   <p className="text-sm text-muted-foreground">
@@ -175,9 +175,9 @@ export default function QuizResponsesPage() {
                   </p>
                 </div>
               ) : (
-                <div className="rounded-2xl border border-white/60 bg-white/80 shadow-sm backdrop-blur-md overflow-hidden">
+                <div className="rounded-2xl border border-amber-500/15 bg-stone-950/75 shadow-sm backdrop-blur-md overflow-hidden">
                   <div className="border-b border-slate-100 px-5 py-3">
-                    <h2 className="text-sm font-semibold text-slate-800">
+                    <h2 className="text-sm font-semibold text-amber-50">
                       {totalAttempts} submission{totalAttempts !== 1 ? "s" : ""}
                     </h2>
                   </div>
@@ -193,10 +193,10 @@ export default function QuizResponsesPage() {
                           <button
                             type="button"
                             onClick={() => toggleExpand(attempt.id)}
-                            className="flex w-full items-center gap-4 px-5 py-3.5 text-left hover:bg-slate-50/80 transition-colors"
+                            className="flex w-full items-center gap-3 px-4 py-3.5 text-left hover:bg-slate-950/70 transition-colors sm:px-5"
                           >
                             {/* Avatar */}
-                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-semibold text-indigo-600">
+                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-semibold text-amber-600 sm:h-9 sm:w-9">
                               {attempt.student?.avatar_url ? (
                                 <img
                                   src={attempt.student.avatar_url}
@@ -210,7 +210,7 @@ export default function QuizResponsesPage() {
 
                             {/* Name + date */}
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-slate-800 truncate">
+                              <p className="text-sm font-medium text-amber-50 truncate">
                                 {attempt.student?.full_name ??
                                   "Unknown student"}
                               </p>
@@ -231,10 +231,10 @@ export default function QuizResponsesPage() {
                             {/* Score badge */}
                             <div
                               className={cn(
-                                "flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold",
+                                "flex items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold sm:px-2.5",
                                 (attempt.score ?? 0) > 0
-                                  ? "bg-emerald-50 text-emerald-700"
-                                  : "bg-slate-100 text-slate-500",
+                                  ? "bg-emerald-400/10 text-emerald-700"
+                                  : "bg-slate-100 text-slate-400",
                               )}
                             >
                               <Trophy className="h-3 w-3" />
@@ -251,7 +251,7 @@ export default function QuizResponsesPage() {
 
                           {/* Expanded answers */}
                           {isExpanded && (
-                            <div className="border-t border-slate-100 bg-slate-50/60 px-5 py-4 space-y-3">
+                            <div className="border-t border-slate-100 bg-slate-950/60 px-5 py-4 space-y-3">
                               {loadingAnswers === attempt.id ? (
                                 <div className="flex items-center gap-2 text-xs text-muted-foreground py-4 justify-center">
                                   <Loader2 className="h-4 w-4 animate-spin" />{" "}
@@ -287,9 +287,9 @@ export default function QuizResponsesPage() {
 
               {/* Per-question breakdown (only if we've loaded at least one attempt's answers) */}
               {allAnswers.length > 0 && questions.length > 0 && (
-                <div className="rounded-2xl border border-white/60 bg-white/80 shadow-sm backdrop-blur-md overflow-hidden">
+                <div className="rounded-2xl border border-amber-500/15 bg-stone-950/75 shadow-sm backdrop-blur-md overflow-hidden">
                   <div className="border-b border-slate-100 px-5 py-3">
-                    <h2 className="text-sm font-semibold text-slate-800">
+                    <h2 className="text-sm font-semibold text-amber-50">
                       Question breakdown
                     </h2>
                     <p className="text-xs text-muted-foreground mt-0.5">
@@ -317,7 +317,7 @@ export default function QuizResponsesPage() {
                           <span className="text-xs font-semibold text-muted-foreground w-6 shrink-0">
                             Q{qi + 1}
                           </span>
-                          <p className="flex-1 text-xs text-slate-700 truncate">
+                          <p className="flex-1 text-xs text-slate-200 truncate">
                             {q.question ?? "Untitled question"}
                           </p>
                           <div className="flex items-center gap-2">
@@ -359,14 +359,14 @@ function StatCard({
   color: "indigo" | "amber" | "emerald" | "violet";
 }) {
   const colorMap = {
-    indigo: "bg-indigo-50 text-indigo-600",
+    indigo: "bg-amber-400/10 text-amber-600",
     amber: "bg-amber-50  text-amber-600",
-    emerald: "bg-emerald-50 text-emerald-600",
-    violet: "bg-violet-50 text-violet-600",
+    emerald: "bg-emerald-400/10 text-emerald-600",
+    violet: "bg-violet-400/10 text-violet-600",
   };
 
   return (
-    <div className="rounded-2xl border border-white/60 bg-white/80 p-4 shadow-sm backdrop-blur-md">
+    <div className="rounded-2xl border border-amber-500/15 bg-stone-950/75 p-4 shadow-sm backdrop-blur-md">
       <div
         className={cn(
           "mb-2 flex h-8 w-8 items-center justify-center rounded-lg",
@@ -375,7 +375,7 @@ function StatCard({
       >
         <Icon className="h-4 w-4" />
       </div>
-      <p className="text-xl font-bold text-slate-900">{value}</p>
+      <p className="text-xl font-bold text-white">{value}</p>
       <p className="text-xs text-muted-foreground mt-0.5">{label}</p>
     </div>
   );
@@ -393,18 +393,18 @@ function AnswerRow({
   const hasAnswer = answer && (answer.answer_text ?? answer.uploaded_file_url);
 
   return (
-    <div className="flex gap-3 rounded-xl border border-slate-200 bg-white p-3">
-      <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[10px] font-semibold text-slate-500 mt-0.5">
+    <div className="flex gap-3 rounded-xl border border-amber-500/15 bg-white p-3">
+      <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[10px] font-semibold text-slate-400 mt-0.5">
         {index}
       </div>
       <div className="flex-1 min-w-0 space-y-1">
-        <p className="text-xs font-medium text-slate-700 truncate">
+        <p className="text-xs font-medium text-slate-200 truncate">
           {question.question ?? "Untitled question"}
         </p>
         {hasAnswer ? (
           <>
             {answer.answer_text && (
-              <p className="text-xs text-slate-600 bg-slate-50 rounded px-2 py-1 wrap-break-words">
+              <p className="text-xs text-slate-300 bg-slate-950/70 rounded px-2 py-1 wrap-break-words">
                 {answer.answer_text}
               </p>
             )}
@@ -413,7 +413,7 @@ function AnswerRow({
                 href={answer.uploaded_file_url}
                 target="_blank"
                 rel="noreferrer"
-                className="text-xs text-indigo-500 hover:underline"
+                className="text-xs text-amber-500 hover:underline"
               >
                 View uploaded file →
               </a>

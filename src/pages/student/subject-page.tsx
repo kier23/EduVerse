@@ -157,10 +157,10 @@ export function StudentSubjectPage() {
       <AppShell title="Subject">
         <div className="flex flex-col items-center justify-center gap-4 py-24 text-center">
           <AlertCircle className="h-10 w-10 text-red-300" />
-          <p className="font-semibold text-slate-700">Subject not found</p>
+          <p className="font-semibold text-slate-200">Subject not found</p>
           <Link
             to="/student/dashboard"
-            className="text-sm text-indigo-500 hover:underline"
+            className="text-sm text-amber-500 hover:underline"
           >
             Back to dashboard
           </Link>
@@ -176,7 +176,7 @@ export function StudentSubjectPage() {
         <button
           type="button"
           onClick={() => navigate("/student/dashboard")}
-          className="mb-3 inline-flex items-center text-sm font-medium text-muted-foreground hover:text-indigo-600 transition-colors"
+          className="mb-3 inline-flex items-center text-sm font-medium text-muted-foreground hover:text-amber-600 transition-colors"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to dashboard
@@ -189,10 +189,10 @@ export function StudentSubjectPage() {
           </div>
         ) : (
           <>
-            <p className="text-sm font-semibold uppercase tracking-wider text-indigo-600">
+            <p className="text-sm font-semibold uppercase tracking-wider text-amber-600">
               {subject?.subject_code}
             </p>
-            <h1 className="mt-1 text-xl font-bold text-slate-900">
+            <h1 className="mt-1 text-xl font-bold text-white">
               {subject?.subject_name}
             </h1>
             {subject?.description && (
@@ -212,24 +212,24 @@ export function StudentSubjectPage() {
               label: "Materials",
               value: materials.length,
               color: "text-emerald-600",
-              bg: "bg-emerald-50",
+              bg: "bg-emerald-400/10",
             },
             {
               label: "Activities",
               value: otherActivities.length,
               color: "text-violet-600",
-              bg: "bg-violet-50",
+              bg: "bg-violet-400/10",
             },
             {
               label: "Quizzes",
               value: quizActivities.length,
-              color: "text-indigo-600",
-              bg: "bg-indigo-50",
+              color: "text-amber-600",
+              bg: "bg-amber-400/10",
             },
           ].map((s) => (
             <div
               key={s.label}
-              className={`rounded-2xl border border-white/60 ${s.bg} p-4 backdrop-blur-sm`}
+              className={`rounded-2xl border border-amber-500/15 ${s.bg} p-4 backdrop-blur-sm`}
             >
               <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
               <p className="text-xs text-muted-foreground mt-0.5">{s.label}</p>
@@ -260,7 +260,7 @@ export function StudentSubjectPage() {
                 ))}
               </>
             ) : materials.length === 0 ? (
-              <p className="rounded-xl border border-dashed border-emerald-200 bg-white/60 p-4 text-sm text-muted-foreground">
+              <p className="rounded-xl border border-dashed border-emerald-200 bg-slate-900/65 p-4 text-sm text-muted-foreground">
                 No materials uploaded yet.
               </p>
             ) : (
@@ -268,7 +268,7 @@ export function StudentSubjectPage() {
                 <ListItemCard key={m.id}>
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-start gap-3 min-w-0">
-                      <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-50">
+                      <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-400/10">
                         <FileText className="h-4 w-4 text-emerald-500" />
                       </div>
                       <div className="min-w-0">
@@ -287,7 +287,7 @@ export function StudentSubjectPage() {
                         href={m.file_url}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-indigo-600 hover:underline"
+                        className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-amber-600 hover:underline"
                       >
                         Open <ExternalLink className="h-3 w-3" />
                       </a>
@@ -322,13 +322,20 @@ export function StudentSubjectPage() {
                 ))}
               </>
             ) : otherActivities.length === 0 ? (
-              <p className="rounded-xl border border-dashed border-violet-200 bg-white/60 p-4 text-sm text-muted-foreground">
+              <p className="rounded-xl border border-dashed border-violet-200 bg-slate-900/65 p-4 text-sm text-muted-foreground">
                 No activities posted yet.
               </p>
             ) : (
               otherActivities.map((a) => (
-                <ListItemCard key={a.id}>
-                  <p className="font-medium text-sm">{a.title}</p>
+                <ListItemCard
+                  key={a.id}
+                  className="cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5"
+                  onClick={() => navigate(`/student/activity/${a.id}`)}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="font-medium text-sm">{a.title}</p>
+                    <ChevronRight className="h-4 w-4 shrink-0 text-slate-300" />
+                  </div>
                   {a.instructions && (
                     <p className="mt-0.5 text-xs text-muted-foreground line-clamp-2">
                       {a.instructions}
@@ -336,13 +343,19 @@ export function StudentSubjectPage() {
                   )}
                   <div className="mt-2 flex flex-wrap gap-2 text-xs">
                     <span
-                      className={`rounded-full px-2.5 py-1 font-medium ${isPast(a.due_date) ? "bg-red-50 text-red-600" : "bg-violet-50 text-violet-700"}`}
+                      className={`rounded-full px-2.5 py-1 font-medium ${isPast(a.due_date) ? "bg-red-50 text-red-600" : "bg-violet-400/10 text-violet-700"}`}
                     >
                       Due: {formatDate(a.due_date)}
                     </span>
-                    <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-indigo-700">
+                    <span className="rounded-full bg-amber-400/10 px-2.5 py-1 text-amber-700">
                       {a.points ?? 0} pts
                     </span>
+                    {a.file_url && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-violet-400/10 px-2.5 py-1 text-violet-600">
+                        <FileText className="h-3 w-3" />
+                        Attachment
+                      </span>
+                    )}
                   </div>
                 </ListItemCard>
               ))
@@ -357,7 +370,7 @@ export function StudentSubjectPage() {
               <div className="h-1 bg-linear-to-r from-indigo-500 to-violet-500" />
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <ClipboardList className="h-5 w-5 text-indigo-600" />
+                  <ClipboardList className="h-5 w-5 text-amber-600" />
                   Quizzes & Exams
                 </CardTitle>
                 <CardDescription>
@@ -403,22 +416,22 @@ export function StudentSubjectPage() {
                           onClick={() =>
                             quizId && navigate(`/student/quiz/${quizId}`)
                           }
-                          className="group flex flex-col rounded-2xl border border-white/60 bg-white/70 p-4 text-left shadow-sm backdrop-blur-md transition-all hover:shadow-md hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+                          className="group flex flex-col rounded-2xl border border-amber-500/15 bg-stone-950/70 p-4 text-left shadow-sm backdrop-blur-md transition-all hover:shadow-md hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
                         >
                           <div className="flex items-start justify-between gap-2 mb-3">
                             <div
-                              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${attempted ? "bg-emerald-50" : "bg-indigo-50"}`}
+                              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${attempted ? "bg-emerald-400/10" : "bg-amber-400/10"}`}
                             >
                               {attempted ? (
                                 <CheckCircle2 className="h-5 w-5 text-emerald-500" />
                               ) : (
-                                <Play className="h-5 w-5 text-indigo-500" />
+                                <Play className="h-5 w-5 text-amber-500" />
                               )}
                             </div>
                             {attempted &&
                               score !== null &&
                               score !== undefined && (
-                                <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+                                <span className="rounded-full bg-emerald-400/10 px-2.5 py-1 text-xs font-semibold text-emerald-700">
                                   {score} pts
                                 </span>
                               )}
@@ -429,18 +442,18 @@ export function StudentSubjectPage() {
                             )}
                           </div>
 
-                          <p className="text-sm font-semibold text-slate-900 group-hover:text-indigo-700 transition-colors line-clamp-2 mb-2">
+                          <p className="text-sm font-semibold text-white group-hover:text-amber-700 transition-colors line-clamp-2 mb-2">
                             {a.title}
                           </p>
 
                           <div className="flex flex-wrap gap-2 text-xs mt-auto">
                             <span
-                              className={`flex items-center gap-1 rounded-full px-2.5 py-1 ${overdue ? "bg-red-50 text-red-600" : "bg-slate-100 text-slate-600"}`}
+                              className={`flex items-center gap-1 rounded-full px-2.5 py-1 ${overdue ? "bg-red-50 text-red-600" : "bg-slate-100 text-slate-300"}`}
                             >
                               <Clock className="h-3 w-3" />
                               {formatDate(a.due_date)}
                             </span>
-                            <span className="flex items-center gap-1 rounded-full bg-indigo-50 px-2.5 py-1 text-indigo-600">
+                            <span className="flex items-center gap-1 rounded-full bg-amber-400/10 px-2.5 py-1 text-amber-600">
                               <Trophy className="h-3 w-3" />
                               {a.points ?? 0} pts
                             </span>

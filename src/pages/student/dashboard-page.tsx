@@ -37,14 +37,14 @@ import { useAuth } from "@/providers/auth-provider";
 
 const COLORS = [
   {
-    icon: "bg-indigo-100 text-indigo-600",
-    badge: "bg-indigo-50  text-indigo-600",
-    arrow: "group-hover:bg-indigo-500",
+    icon: "bg-indigo-100 text-amber-600",
+    badge: "bg-amber-400/10  text-amber-600",
+    arrow: "group-hover:bg-amber-400/100",
   },
   {
     icon: "bg-violet-100 text-violet-600",
-    badge: "bg-violet-50  text-violet-600",
-    arrow: "group-hover:bg-violet-500",
+    badge: "bg-violet-400/10  text-violet-600",
+    arrow: "group-hover:bg-violet-400/100",
   },
   {
     icon: "bg-sky-100    text-sky-600",
@@ -53,8 +53,8 @@ const COLORS = [
   },
   {
     icon: "bg-emerald-100 text-emerald-600",
-    badge: "bg-emerald-50 text-emerald-600",
-    arrow: "group-hover:bg-emerald-500",
+    badge: "bg-emerald-400/10 text-emerald-600",
+    arrow: "group-hover:bg-emerald-400/100",
   },
   {
     icon: "bg-amber-100  text-amber-600",
@@ -170,13 +170,13 @@ export function StudentDashboardPage() {
             placeholder="Search subjects…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 pr-8 bg-white/80"
+            className="pl-9 pr-8 bg-stone-950/75"
           />
           {search && (
             <button
               type="button"
               onClick={() => setSearch("")}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-400"
             >
               <X className="h-3.5 w-3.5" />
             </button>
@@ -200,7 +200,7 @@ export function StudentDashboardPage() {
               setEnrollStatus("");
               setEnrollOpen(true);
             }}
-            className="bg-indigo-500 hover:bg-indigo-600 text-white gap-1.5"
+            className="bg-amber-400/100 hover:bg-amber-600 text-white gap-1.5"
           >
             <Plus className="h-4 w-4" /> Enroll in Subject
           </Button>
@@ -216,12 +216,12 @@ export function StudentDashboardPage() {
 
       {/* ── Empty ────────────────────────────────────────────────────────────── */}
       {!loading && subjects.length === 0 && (
-        <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-slate-200 bg-white/50 py-24 text-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-50">
+        <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-amber-500/15 bg-white/50 py-24 text-center">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-400/10">
             <BookOpen className="h-7 w-7 text-indigo-400" />
           </div>
           <div>
-            <p className="font-semibold text-slate-900">No subjects yet</p>
+            <p className="font-semibold text-white">No subjects yet</p>
             <p className="mt-1 text-sm text-muted-foreground">
               Ask your teacher for a class code to enroll.
             </p>
@@ -229,7 +229,7 @@ export function StudentDashboardPage() {
           <Button
             size="sm"
             onClick={() => setEnrollOpen(true)}
-            className="bg-indigo-500 hover:bg-indigo-600 text-white gap-1.5 mt-2"
+            className="bg-amber-400/100 hover:bg-amber-600 text-white gap-1.5 mt-2"
           >
             <Plus className="h-4 w-4" /> Enroll in Subject
           </Button>
@@ -246,7 +246,7 @@ export function StudentDashboardPage() {
                 key={subject.id}
                 type="button"
                 onClick={() => navigate(`/student/subject/${subject.id}`)}
-                className="group relative flex flex-col rounded-2xl border border-white/60 bg-white/70 p-5 text-left shadow-lg shadow-indigo-500/5 backdrop-blur-md transition-all hover:shadow-indigo-500/10 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+                className="group relative flex flex-col rounded-2xl border border-amber-500/15 bg-stone-950/70 p-5 text-left shadow-lg shadow-indigo-500/5 backdrop-blur-md transition-all hover:shadow-indigo-500/10 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
               >
                 {/* Icon + code */}
                 <div className="mb-4 flex items-start justify-between gap-3">
@@ -265,7 +265,7 @@ export function StudentDashboardPage() {
                 </div>
 
                 {/* Name */}
-                <h3 className="mb-1.5 line-clamp-2 text-sm font-semibold leading-snug text-slate-900 group-hover:text-indigo-700 transition-colors">
+                <h3 className="mb-1.5 line-clamp-2 text-sm font-semibold leading-snug text-white group-hover:text-amber-700 transition-colors">
                   {subject.subject_name ?? "Untitled Subject"}
                 </h3>
 
@@ -299,10 +299,10 @@ export function StudentDashboardPage() {
 
       {/* ── Upcoming activities strip ─────────────────────────────────────────── */}
       {!loading && upcomingActivities.length > 0 && (
-        <div className="rounded-2xl border border-white/60 bg-white/70 shadow-lg shadow-indigo-500/5 backdrop-blur-md overflow-hidden">
+        <div className="rounded-2xl border border-amber-500/15 bg-stone-950/70 shadow-lg shadow-indigo-500/5 backdrop-blur-md overflow-hidden">
           <div className="flex items-center gap-2 border-b border-slate-100 px-5 py-3">
             <CalendarDays className="h-4 w-4 text-violet-500" />
-            <h2 className="text-sm font-semibold text-slate-800">
+            <h2 className="text-sm font-semibold text-amber-50">
               Upcoming Activities
             </h2>
             <span className="ml-auto text-xs text-muted-foreground">
@@ -313,16 +313,16 @@ export function StudentDashboardPage() {
             {upcomingActivities.slice(0, 5).map((a) => (
               <div key={a.id} className="flex items-center gap-4 px-5 py-3">
                 <div
-                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${a.type === "quiz" ? "bg-indigo-50" : "bg-violet-50"}`}
+                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${a.type === "quiz" ? "bg-amber-400/10" : "bg-violet-400/10"}`}
                 >
                   {a.type === "quiz" ? (
-                    <ClipboardList className="h-4 w-4 text-indigo-500" />
+                    <ClipboardList className="h-4 w-4 text-amber-500" />
                   ) : (
                     <BookOpen className="h-4 w-4 text-violet-500" />
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-slate-800 truncate">
+                  <p className="text-sm font-medium text-amber-50 truncate">
                     {a.title}
                   </p>
                   <p className="text-xs text-muted-foreground truncate">
@@ -330,7 +330,7 @@ export function StudentDashboardPage() {
                   </p>
                 </div>
                 <div className="text-right shrink-0">
-                  <p className="text-xs font-medium text-slate-700">
+                  <p className="text-xs font-medium text-slate-200">
                     {new Date(a.due_date!).toLocaleDateString("en-US", {
                       month: "short",
                       day: "numeric",
@@ -354,7 +354,7 @@ export function StudentDashboardPage() {
         }}
       >
         <DialogContent className="sm:max-w-sm overflow-hidden p-0">
-          <div className="h-1 bg-linear-to-r from-indigo-500 via-violet-500 to-sky-500" />
+          <div className="h-1 bg-linear-to-r from-amber-500 via-orange-500 to-yellow-500" />
           <div className="p-6">
             <DialogHeader className="mb-5">
               <DialogTitle>Enroll in a Subject</DialogTitle>
@@ -374,7 +374,7 @@ export function StudentDashboardPage() {
                     placeholder="e.g. CHEM101"
                     value={classCode}
                     onChange={(e) => setClassCode(e.target.value.toUpperCase())}
-                    className="pl-8 bg-slate-50/80 font-mono tracking-widest"
+                    className="pl-8 bg-slate-950/70 font-mono tracking-widest"
                     maxLength={12}
                     required
                   />
@@ -387,7 +387,7 @@ export function StudentDashboardPage() {
                 </div>
               )}
               {enrollStatus && (
-                <div className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
+                <div className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-400/10 px-3 py-2 text-xs text-emerald-700">
                   ✓ {enrollStatus}
                 </div>
               )}
@@ -406,7 +406,7 @@ export function StudentDashboardPage() {
                   type="submit"
                   size="sm"
                   disabled={enrolling || !classCode.trim()}
-                  className="bg-indigo-500 hover:bg-indigo-600 text-white min-w-24"
+                  className="bg-amber-400/100 hover:bg-amber-600 text-white min-w-24"
                 >
                   {enrolling ? (
                     <>

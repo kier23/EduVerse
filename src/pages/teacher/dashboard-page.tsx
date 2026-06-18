@@ -93,7 +93,7 @@ export function TeacherDashboardPage() {
 
   return (
     <AppShell title="Teacher Dashboard">
-      <p className="mb-6 text-base font-medium text-slate-700">
+      <p className="mb-6 text-base font-medium text-slate-200">
         Welcome! {profile?.full_name ?? user?.user_metadata?.full_name ?? user?.email ?? "Teacher"}
       </p>
 
@@ -153,13 +153,13 @@ export function TeacherDashboardPage() {
               {[1, 2, 3, 4].map((item) => (
                 <div
                   key={item}
-                  className="h-28 animate-pulse rounded-xl bg-white/60"
+                  className="h-28 animate-pulse rounded-xl bg-slate-900/65"
                 />
               ))}
             </div>
           ) : subjects.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-indigo-200 bg-white/60 p-6 text-center">
-              <BookOpen className="mx-auto h-8 w-8 text-indigo-500" />
+            <div className="rounded-xl border border-dashed border-indigo-200 bg-slate-900/65 p-6 text-center">
+              <BookOpen className="mx-auto h-8 w-8 text-amber-500" />
               <p className="mt-3 font-medium">No subjects yet</p>
               <p className="mt-1 text-sm text-muted-foreground">
                 Create your first subject, then it will appear here and in the sidebar.
@@ -188,24 +188,24 @@ export function TeacherDashboardPage() {
                     <ListItemCard className="group h-full">
                       <div className="flex items-start justify-between gap-4">
                         <div className="min-w-0">
-                          <p className="text-xs font-semibold uppercase tracking-wider text-indigo-600">
+                          <p className="text-xs font-semibold uppercase tracking-wider text-amber-600">
                             {subject.subject_code}
                           </p>
                           <p className="mt-1 truncate text-base font-semibold">
                             {subject.subject_name}
                           </p>
                         </div>
-                        <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-muted-foreground transition group-hover:translate-x-1 group-hover:text-indigo-600" />
+                        <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-muted-foreground transition group-hover:translate-x-1 group-hover:text-amber-600" />
                       </div>
                       <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">
                         {subject.description || "No description provided."}
                       </p>
                       <div className="mt-4 flex flex-wrap gap-2 text-xs text-muted-foreground">
-                        <span className="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-1 text-indigo-700">
+                        <span className="inline-flex items-center rounded-full bg-amber-400/10 px-2.5 py-1 text-amber-700">
                           <ClipboardList className="mr-1.5 h-3.5 w-3.5" />
                           {counts.activities} activities
                         </span>
-                        <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-1 text-emerald-700">
+                        <span className="inline-flex items-center rounded-full bg-emerald-400/10 px-2.5 py-1 text-emerald-700">
                           <BookOpen className="mr-1.5 h-3.5 w-3.5" />
                           {counts.materials} materials
                         </span>

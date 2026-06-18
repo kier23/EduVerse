@@ -18,6 +18,7 @@ export type Activity = {
   points: number | null;
   type: string | null;
   subject_id: string;
+  file_url: string | null;
 };
 
 export type Material = {
@@ -276,22 +277,10 @@ export async function fetchCalendarEvents(userId: string) {
   if (error) throw error;
   return (data ?? []) as EventItem[];
 }
+// ─── Material CRUD ────────────────────────────────────────────────────────────
 
-export async function createActivity(payload: {
-  subject_id: string;
-  teacher_id: string;
-  title: string;
-  instructions: string;
-  type: string;
-  due_date: string;
-  points: number;
-}) {
-  const { error } = await supabase.from("activities").insert(payload);
-  if (error) throw error;
-}
-
-// Uploads the file to Supabase Storage (materials bucket) and inserts a
-// row into the materials table with the resulting public URL.
+// Uploads the file to subject-files bucket under {subject_id}/materials/
+// and inserts a row into the materials table.
 export async function uploadMaterial(payload: {
   subject_id: string;
   teacher_id: string;
@@ -300,7 +289,7 @@ export async function uploadMaterial(payload: {
   file: File;
 }) {
   const ext = payload.file.name.split(".").pop();
-  const filePath = `${payload.subject_id}/${Date.now()}.${ext}`;
+  const filePath = `${payload.subject_id}/materials/${Date.now()}.${ext}`;
 
   const { error: uploadErr } = await supabase.storage
     .from("subject-files")
@@ -321,6 +310,180 @@ export async function uploadMaterial(payload: {
   if (error) throw error;
 }
 
+export async function updateMaterial(
+  materialId: string,
+  payload: {
+    title: string;
+    description: string;
+    file?: File;
+    subject_id: string;
+    old_file_url?: string | null;
+    remove_file?: boolean;
+  },
+) {
+  let file_url: string | undefined = undefined;
+
+  if (payload.file) {
+    // Delete old file from storage first
+    if (payload.old_file_url) {
+      const oldPath = extractStoragePath(payload.old_file_url, "subject-files");
+      if (oldPath) await supabase.storage.from("subject-files").remove([oldPath]);
+    }
+    const ext = payload.file.name.split(".").pop();
+    const filePath = `${payload.subject_id}/materials/${Date.now()}.${ext}`;
+    const { error: uploadErr } = await supabase.storage
+      .from("subject-files")
+      .upload(filePath, payload.file, { upsert: true });
+    if (uploadErr) throw uploadErr;
+    const { data: urlData } = supabase.storage
+      .from("subject-files")
+      .getPublicUrl(filePath);
+    file_url = urlData.publicUrl;
+  }
+
+  const { error } = await supabase
+    .from("materials")
+    .update({
+      title: payload.title,
+      description: payload.description,
+      ...(file_url !== undefined && { file_url }),
+    })
+    .eq("id", materialId);
+  if (error) throw error;
+}
+
+export async function deleteMaterial(materialId: string) {
+  // Fetch the file_url before deleting the row
+  const { data } = await supabase
+    .from("materials")
+    .select("file_url")
+    .eq("id", materialId)
+    .single();
+
+  if (data?.file_url) {
+    const path = extractStoragePath(data.file_url, "subject-files");
+    if (path) await supabase.storage.from("subject-files").remove([path]);
+  }
+
+  const { error } = await supabase.from("materials").delete().eq("id", materialId);
+  if (error) throw error;
+}
+
+export async function createActivity(payload: {
+  subject_id: string;
+  teacher_id: string;
+  title: string;
+  instructions: string;
+  type: string;
+  due_date: string;
+  points: number;
+  file?: File;
+}) {
+  let file_url: string | null = null;
+
+  if (payload.file) {
+    const ext = payload.file.name.split(".").pop();
+    const filePath = `${payload.subject_id}/activity/${Date.now()}.${ext}`;
+    const { error: uploadErr } = await supabase.storage
+      .from("subject-files")
+      .upload(filePath, payload.file, { upsert: true });
+    if (uploadErr) throw uploadErr;
+    const { data: urlData } = supabase.storage
+      .from("subject-files")
+      .getPublicUrl(filePath);
+    file_url = urlData.publicUrl;
+  }
+
+  const { error } = await supabase.from("activities").insert({
+    subject_id: payload.subject_id,
+    teacher_id: payload.teacher_id,
+    title: payload.title,
+    instructions: payload.instructions,
+    type: payload.type,
+    due_date: payload.due_date,
+    points: payload.points,
+    file_url,
+  });
+  if (error) throw error;
+}
+
+export async function updateActivityRecord(
+  activityId: string,
+  payload: {
+    title: string;
+    instructions: string;
+    due_date: string;
+    points: number;
+    file?: File;
+    subject_id: string;
+    old_file_url?: string | null;
+    remove_file?: boolean;
+  },
+) {
+  let file_url: string | undefined = undefined;
+
+  if (payload.file) {
+    if (payload.old_file_url) {
+      const oldPath = extractStoragePath(payload.old_file_url, "subject-files");
+      if (oldPath) await supabase.storage.from("subject-files").remove([oldPath]);
+    }
+    const ext = payload.file.name.split(".").pop();
+    const filePath = `${payload.subject_id}/activity/${Date.now()}.${ext}`;
+    const { error: uploadErr } = await supabase.storage
+      .from("subject-files")
+      .upload(filePath, payload.file, { upsert: true });
+    if (uploadErr) throw uploadErr;
+    const { data: urlData } = supabase.storage
+      .from("subject-files")
+      .getPublicUrl(filePath);
+    file_url = urlData.publicUrl;
+  }
+
+  const { error } = await supabase
+    .from("activities")
+    .update({
+      title: payload.title,
+      instructions: payload.instructions,
+      due_date: payload.due_date,
+      points: payload.points,
+      ...(file_url !== undefined && { file_url }),
+    })
+    .eq("id", activityId);
+  if (error) throw error;
+}
+
+export async function deleteActivity(activityId: string) {
+  const { data } = await supabase
+    .from("activities")
+    .select("file_url")
+    .eq("id", activityId)
+    .single();
+
+  if (data?.file_url) {
+    const path = extractStoragePath(data.file_url, "subject-files");
+    if (path) await supabase.storage.from("subject-files").remove([path]);
+  }
+
+  const { error } = await supabase.from("activities").delete().eq("id", activityId);
+  if (error) throw error;
+}
+
+// Extracts the storage object path from a Supabase public URL.
+// e.g. "https://.../storage/v1/object/public/subject-files/abc/materials/1.pdf"
+//   → "abc/materials/1.pdf"
+function extractStoragePath(publicUrl: string, bucket: string): string | null {
+  try {
+    const marker = `/object/public/${bucket}/`;
+    const idx = publicUrl.indexOf(marker);
+    if (idx === -1) return null;
+    return decodeURIComponent(publicUrl.slice(idx + marker.length));
+  } catch {
+    return null;
+  }
+}
+
+// ─── Events ───────────────────────────────────────────────────────────────────
+
 export async function createEvent(payload: {
   created_by: string;
   subject_id: string | null;
@@ -339,7 +502,6 @@ export async function deleteEvent(eventId: string) {
     .from("events")
     .delete()
     .eq("id", eventId);
-
   if (error) throw error;
 }
 
@@ -349,9 +511,7 @@ export async function uploadAvatar(userId: string, file: File) {
 
   const { error } = await supabase.storage
     .from("avatar")
-    .upload(filePath, file, {
-      upsert: true,
-    });
+    .upload(filePath, file, { upsert: true });
 
   if (error) {
     throw error;
@@ -378,12 +538,10 @@ export async function fetchTeacherQuizzes(teacherId: string): Promise<QuizWithAc
  
   if (error) throw error;
  
-  // Filter to only this teacher's activities, then enrich counts
   const rows = ((data ?? []) as QuizWithActivity[]).filter(
     (q) => q.activity !== null,
   );
  
-  // Parallel: question counts + attempt counts
   const enriched = await Promise.all(
     rows.map(async (q) => {
       const [{ count: qCount }, { count: aCount }] = await Promise.all([
@@ -400,7 +558,6 @@ export async function fetchTeacherQuizzes(teacherId: string): Promise<QuizWithAc
     }),
   );
  
-  // Only quizzes whose activity belongs to this teacher
   const teacherActivityIds = await supabase
     .from("activities")
     .select("id")
@@ -484,7 +641,7 @@ export async function fetchAttemptAnswers(attemptId: string): Promise<QuizAnswer
   return (data ?? []) as QuizAnswer[];
 }
  
-// ─── Create / Update ──────────────────────────────────────────────────────────
+// ─── Quiz Create / Update ─────────────────────────────────────────────────────
  
 export async function createActivityAndQuiz(payload: {
   teacher_id: string;
@@ -543,7 +700,6 @@ export async function updateQuiz(
 }
  
 export async function upsertQuizSettings(quizId: string, settings: QuizSettings) {
-  // Check if a row exists
   const { data: existing } = await supabase
     .from("quiz_settings")
     .select("id")
@@ -601,8 +757,6 @@ export async function upsertQuizQuestion(
   }
 }
  
-// Persist new order after drag-and-drop reorder.
-// Sends one update per question in parallel.
 export async function reorderQuizQuestions(
   questions: Array<{ id: string; order_index: number }>,
 ): Promise<void> {
@@ -620,7 +774,6 @@ export async function upsertQuizChoices(
   questionId: string,
   choices: Array<{ id?: string; choice_text: string; is_correct: boolean; image_url?: string }>,
 ): Promise<QuizChoice[]> {
-  // Delete existing choices for this question first, then re-insert
   await supabase.from("quiz_choices").delete().eq("question_id", questionId);
  
   if (choices.length === 0) return [];
@@ -635,7 +788,6 @@ export async function upsertQuizChoices(
 }
  
 export async function deleteQuizQuestion(questionId: string) {
-  // Delete media files first
   await supabase.from("quiz_question_media").delete().eq("question_id", questionId);
   await supabase.from("quiz_choices").delete().eq("question_id", questionId);
   const { error } = await supabase
@@ -659,8 +811,6 @@ export async function deleteQuizWithActivity(quizId: string) {
 
 // ─── Media Upload ─────────────────────────────────────────────────────────────
  
-// Uploads a question attachment (image, audio, video, PDF) to:
-//   quiz-media/{quizId}/{questionId}/attachment.{ext}
 export async function uploadQuizMedia(
   quizId: string,
   questionId: string,
@@ -691,9 +841,6 @@ export async function uploadQuizMedia(
   return data as QuizQuestionMedia;
 }
  
-// Uploads an image-choice option image to:
-//   quiz-media/{quizId}/{questionId}/image-choices/{timestamp}.{ext}
-// Returns just the public URL (not stored in quiz_question_media).
 export async function uploadQuizChoiceImage(
   quizId: string,
   questionId: string,

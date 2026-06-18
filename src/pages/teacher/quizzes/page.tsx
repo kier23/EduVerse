@@ -130,7 +130,7 @@ export default function QuizzesPage() {
         </p>
         <Button
           size="sm"
-          className="bg-indigo-500 hover:bg-indigo-600 text-white gap-1.5"
+          className="bg-amber-400/100 hover:bg-amber-600 text-white gap-1.5"
           onClick={() => setCreateOpen(true)}
         >
           <Plus className="h-4 w-4" />
@@ -147,19 +147,19 @@ export default function QuizzesPage() {
 
       {/* Empty state */}
       {!loading && quizzes.length === 0 && (
-        <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-slate-200 bg-white/50 py-24 text-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-50">
+        <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-amber-500/15 bg-white/50 py-24 text-center">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-400/10">
             <ClipboardList className="h-7 w-7 text-indigo-400" />
           </div>
           <div>
-            <p className="font-semibold text-slate-900">No quizzes yet</p>
+            <p className="font-semibold text-white">No quizzes yet</p>
             <p className="mt-1 text-sm text-muted-foreground">
               Create your first quiz to get started.
             </p>
           </div>
           <Button
             size="sm"
-            className="bg-indigo-500 hover:bg-indigo-600 text-white gap-1.5 mt-2"
+            className="bg-amber-400/100 hover:bg-amber-600 text-white gap-1.5 mt-2"
             onClick={() => setCreateOpen(true)}
           >
             <Plus className="h-4 w-4" />
@@ -188,7 +188,7 @@ export default function QuizzesPage() {
       {/* ── Create Dialog ─────────────────────────────────────────────────── */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent className="sm:max-w-md overflow-hidden p-0">
-          <div className="h-1 bg-linear-to-r from-indigo-500 via-violet-500 to-sky-500" />
+          <div className="h-1 bg-linear-to-r from-amber-500 via-orange-500 to-yellow-500" />
           <div className="p-6">
             <DialogHeader className="mb-5">
               <DialogTitle>New Quiz</DialogTitle>
@@ -206,7 +206,7 @@ export default function QuizzesPage() {
                   placeholder="e.g. Chapter 3 Quiz"
                   value={form.title}
                   onChange={(e) => setForm({ ...form, title: e.target.value })}
-                  className="bg-slate-50/80"
+                  className="bg-slate-950/70"
                 />
               </div>
 
@@ -218,7 +218,7 @@ export default function QuizzesPage() {
                   value={form.subject_id}
                   onValueChange={(v) => setForm({ ...form, subject_id: v })}
                 >
-                  <SelectTrigger className="bg-slate-50/80">
+                  <SelectTrigger className="bg-slate-950/70">
                     <SelectValue placeholder="Select subject…" />
                   </SelectTrigger>
                   <SelectContent>
@@ -242,7 +242,7 @@ export default function QuizzesPage() {
                     onChange={(e) =>
                       setForm({ ...form, due_date: e.target.value })
                     }
-                    className="bg-slate-50/80"
+                    className="bg-slate-950/70"
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -255,7 +255,7 @@ export default function QuizzesPage() {
                     onChange={(e) =>
                       setForm({ ...form, points: e.target.value })
                     }
-                    className="bg-slate-50/80"
+                    className="bg-slate-950/70"
                     min={1}
                   />
                 </div>
@@ -266,7 +266,7 @@ export default function QuizzesPage() {
                   Instructions (optional)
                 </label>
                 <textarea
-                  className="flex w-full rounded-md border border-input bg-slate-50/80 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
+                  className="flex w-full rounded-md border border-input bg-slate-950/70 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
                   rows={2}
                   placeholder="Any instructions for students…"
                   value={form.instructions}
@@ -289,7 +289,7 @@ export default function QuizzesPage() {
             </Button>
             <Button
               size="sm"
-              className="bg-indigo-500 hover:bg-indigo-600 text-white min-w-30"
+              className="bg-amber-400/100 hover:bg-amber-600 text-white min-w-30"
               onClick={handleCreate}
               disabled={
                 creating ||
@@ -372,14 +372,14 @@ function QuizCard({
   onDelete: () => void;
 }) {
   return (
-    <div className="group relative flex flex-col rounded-2xl border border-white/60 bg-white/70 p-5 shadow-lg shadow-indigo-500/5 backdrop-blur-md transition-shadow hover:shadow-indigo-500/10">
+    <div className="group relative flex flex-col rounded-2xl border border-amber-500/15 bg-stone-950/70 p-5 shadow-lg shadow-indigo-500/5 backdrop-blur-md transition-shadow hover:shadow-indigo-500/10">
       {/* Subject pill */}
-      <span className="mb-3 inline-flex w-fit items-center rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-600">
+      <span className="mb-3 inline-flex w-fit items-center rounded-full bg-amber-400/10 px-2.5 py-0.5 text-xs font-medium text-amber-600">
         {quiz.activity?.subject?.subject_name ?? "—"}
       </span>
 
       {/* Title */}
-      <h3 className="text-sm font-semibold text-slate-900 leading-snug line-clamp-2 mb-3">
+      <h3 className="text-sm font-semibold text-white leading-snug line-clamp-2 mb-3">
         {quiz.activity?.title ?? "Untitled Quiz"}
       </h3>
 
@@ -427,7 +427,7 @@ function QuizCard({
           <Users className="h-3.5 w-3.5" />
           Responses
           {(quiz.attempt_count ?? 0) > 0 && (
-            <span className="ml-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 text-[10px] font-semibold">
+            <span className="ml-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-indigo-100 text-amber-600 text-[10px] font-semibold">
               {quiz.attempt_count}
             </span>
           )}

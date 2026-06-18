@@ -460,13 +460,13 @@ export default function QuizEditorPage() {
   }
 
   return (
-    <div className="flex h-screen flex-col bg-slate-50/80">
+    <div className="flex h-screen flex-col bg-background/80">
       {/* ── Top bar ────────────────────────────────────────────────────────── */}
-      <header className="flex items-center gap-3 border-b border-slate-200 bg-white/80 px-6 py-3 backdrop-blur-md">
+      <header className="flex items-center gap-2 border-b border-amber-500/15 bg-card/85 px-3 py-2.5 backdrop-blur-md sm:gap-3 sm:px-6 sm:py-3">
         <button
           type="button"
           onClick={() => navigate("/teacher/quizzes")}
-          className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-slate-100 transition-colors"
+          className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-slate-800 transition-colors"
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
@@ -478,19 +478,21 @@ export default function QuizEditorPage() {
           >
             Quiz Editor
           </p>
-          <h1 className="text-sm font-semibold text-slate-900 truncate">
+          <h1 className="text-sm font-semibold text-white truncate">
             {activity?.title || "Untitled Quiz"}
           </h1>
         </div>
 
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+        <div className="flex items-center gap-1 text-xs text-muted-foreground">
           {saving ? (
             <>
-              <Loader2 className="h-3.5 w-3.5 animate-spin" /> Saving…
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />{" "}
+              <span className="hidden sm:inline">Saving…</span>
             </>
           ) : saved ? (
             <>
-              <Check className="h-3.5 w-3.5 text-emerald-500" /> Saved
+              <Check className="h-3.5 w-3.5 text-emerald-500" />{" "}
+              <span className="hidden sm:inline">Saved</span>
             </>
           ) : null}
         </div>
@@ -498,7 +500,7 @@ export default function QuizEditorPage() {
         <button
           type="button"
           onClick={() => navigate(`/teacher/quizzes/${quizId}/responses`)}
-          className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs text-muted-foreground hover:bg-slate-50 transition-colors"
+          className="hidden sm:flex items-center gap-1.5 rounded-lg border border-amber-500/15 px-3 py-1.5 text-xs text-muted-foreground hover:bg-card/70 transition-colors"
         >
           <Users className="h-3.5 w-3.5" />
           Responses
@@ -507,7 +509,7 @@ export default function QuizEditorPage() {
         <button
           type="button"
           onClick={() => setPreviewOpen(true)}
-          className="flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors"
+          className="flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors sm:px-3"
           style={{
             borderColor: themeColor + "55",
             color: themeColor,
@@ -515,13 +517,13 @@ export default function QuizEditorPage() {
           }}
         >
           <Eye className="h-3.5 w-3.5" />
-          Preview
+          <span className="hidden sm:inline">Preview</span>
         </button>
 
         <button
           type="button"
           onClick={() => setSettingsOpen(true)}
-          className="flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors"
+          className="flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors sm:px-3"
           style={{
             borderColor: themeColor + "55",
             color: themeColor,
@@ -529,13 +531,13 @@ export default function QuizEditorPage() {
           }}
         >
           <Settings2 className="h-3.5 w-3.5" />
-          Settings
+          <span className="hidden sm:inline">Settings</span>
         </button>
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        {/* ── Left: question list ──────────────────────────────────────────── */}
-        <aside className="flex w-56 flex-col border-r border-slate-200 bg-white/60 backdrop-blur-sm">
+        {/* ── Left: question list — hidden on mobile, shown as overlay ──── */}
+        <aside className="hidden md:flex w-56 flex-col border-r border-amber-500/15 bg-card/60 backdrop-blur-sm">
           <div className="flex-1 overflow-y-auto p-3 space-y-1.5">
             {questions.length === 0 && (
               <p className="px-2 py-4 text-center text-xs text-muted-foreground">
@@ -570,7 +572,7 @@ export default function QuizEditorPage() {
             </DndContext>
           </div>
 
-          <div className="border-t border-slate-200 p-3">
+          <div className="border-t border-amber-500/15 p-3">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -610,6 +612,60 @@ export default function QuizEditorPage() {
 
         {/* ── Center: editor ───────────────────────────────────────────────── */}
         <main className="flex flex-1 flex-col overflow-y-auto">
+          {/* Mobile: question selector strip */}
+          <div className="flex items-center gap-2 border-b border-amber-500/15 bg-card/85 px-3 py-2 md:hidden overflow-x-auto">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="shrink-0 gap-1.5 text-xs"
+                  style={{ borderColor: themeColor + "55", color: themeColor }}
+                >
+                  <Plus className="h-3.5 w-3.5" /> Add question
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-52">
+                {["Standard", "Interactive", "Media"].map((group) => (
+                  <div key={group}>
+                    <DropdownMenuLabel className="text-[10px] uppercase tracking-wider">
+                      {group}
+                    </DropdownMenuLabel>
+                    {QUESTION_TYPES.filter((t) => t.group === group).map(
+                      (t) => (
+                        <DropdownMenuItem
+                          key={t.value}
+                          onClick={() => addQuestion(t.value)}
+                          className="text-xs gap-2"
+                        >
+                          <t.icon className="h-3.5 w-3.5 text-muted-foreground" />
+                          {t.label}
+                        </DropdownMenuItem>
+                      ),
+                    )}
+                    <DropdownMenuSeparator />
+                  </div>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <div className="flex gap-1.5 overflow-x-auto">
+              {questions.map((q, i) => (
+                <button
+                  key={q.id}
+                  type="button"
+                  onClick={() => setActiveIndex(i)}
+                  className="shrink-0 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all"
+                  style={
+                    i === activeIndex
+                      ? { background: themeColor, color: "white" }
+                      : { background: "#f1f5f9", color: "#64748b" }
+                  }
+                >
+                  Q{i + 1}
+                </button>
+              ))}
+            </div>
+          </div>
           {/* Banner preview */}
           {quiz?.banner_url && (
             <div className="relative h-36 w-full shrink-0 overflow-hidden">
@@ -635,7 +691,7 @@ export default function QuizEditorPage() {
             {/* ── Quiz meta editor card ─────────────────────────────────── */}
             <div className="mx-auto w-full max-w-2xl">
               <div
-                className="rounded-2xl border bg-white/80 shadow-sm backdrop-blur-md overflow-hidden"
+                className="rounded-2xl border bg-stone-950/75 shadow-sm backdrop-blur-md overflow-hidden"
                 style={{ borderColor: themeColor + "30" }}
               >
                 {/* Colored top stripe */}
@@ -654,7 +710,7 @@ export default function QuizEditorPage() {
                       onChange={(e) =>
                         updateActivityMeta({ title: e.target.value })
                       }
-                      className="w-full bg-transparent text-xl font-bold text-slate-900 placeholder:text-slate-300 focus:outline-none border-b border-transparent focus:border-slate-200 pb-1 transition-colors"
+                      className="w-full bg-transparent text-xl font-bold text-white placeholder:text-slate-300 focus:outline-none border-b border-transparent focus:border-amber-500/15 pb-1 transition-colors"
                     />
                   </div>
 
@@ -668,12 +724,12 @@ export default function QuizEditorPage() {
                         updateActivityMeta({ instructions: e.target.value })
                       }
                       rows={2}
-                      className="flex-1 resize-none bg-transparent text-sm text-slate-600 placeholder:text-slate-300 focus:outline-none"
+                      className="flex-1 resize-none bg-transparent text-sm text-slate-300 placeholder:text-slate-300 focus:outline-none"
                     />
                   </div>
 
                   {/* Due date + Points row */}
-                  <div className="flex flex-wrap gap-4 pt-1 border-t border-slate-100">
+                  <div className="flex flex-wrap gap-4 pt-1 border-t border-border/60">
                     <div className="flex items-center gap-2">
                       <CalendarDays className="h-4 w-4 text-muted-foreground shrink-0" />
                       <div>
@@ -686,7 +742,7 @@ export default function QuizEditorPage() {
                           onChange={(e) =>
                             updateActivityMeta({ due_date: e.target.value })
                           }
-                          className="bg-transparent text-sm text-slate-700 focus:outline-none cursor-pointer"
+                          className="bg-transparent text-sm text-slate-200 focus:outline-none cursor-pointer"
                         />
                       </div>
                     </div>
@@ -706,7 +762,7 @@ export default function QuizEditorPage() {
                               points: Number(e.target.value),
                             })
                           }
-                          className="w-20 bg-transparent text-sm text-slate-700 focus:outline-none"
+                          className="w-20 bg-transparent text-sm text-slate-200 focus:outline-none"
                         />
                       </div>
                     </div>
@@ -738,7 +794,7 @@ export default function QuizEditorPage() {
                     style={{ color: themeColor + "80" }}
                   />
                 </div>
-                <p className="text-sm font-medium text-slate-700">
+                <p className="text-sm font-medium text-slate-200">
                   No questions yet
                 </p>
                 <p className="text-xs text-muted-foreground">
@@ -749,7 +805,7 @@ export default function QuizEditorPage() {
               <div className="mx-auto w-full max-w-2xl space-y-4">
                 {/* Question card */}
                 <div
-                  className="rounded-2xl border bg-white/80 shadow-sm backdrop-blur-md overflow-hidden"
+                  className="rounded-2xl border bg-stone-950/75 shadow-sm backdrop-blur-md overflow-hidden"
                   style={{ borderColor: themeColor + "30" }}
                 >
                   <div
@@ -776,7 +832,7 @@ export default function QuizEditorPage() {
                     </div>
 
                     <textarea
-                      className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50/60 px-4 py-3 text-sm font-medium text-slate-800 placeholder:text-slate-300 focus:outline-none focus:ring-2 transition-all"
+                      className="w-full resize-none rounded-xl border border-amber-500/15 bg-slate-950/60 px-4 py-3 text-sm font-medium text-amber-50 placeholder:text-slate-300 focus:outline-none focus:ring-2 transition-all"
                       style={
                         {
                           "--tw-ring-color": themeColor + "50",
@@ -819,7 +875,7 @@ export default function QuizEditorPage() {
 
                 {/* Answer editor card */}
                 <div
-                  className="rounded-2xl border bg-white/80 p-6 shadow-sm backdrop-blur-md"
+                  className="rounded-2xl border bg-card/85 p-6 shadow-sm backdrop-blur-md"
                   style={{ borderColor: themeColor + "20" }}
                 >
                   <QuestionEditor
@@ -837,7 +893,7 @@ export default function QuizEditorPage() {
 
         {/* ── Right: per-question settings ─────────────────────────────────── */}
         {active && (
-          <aside className="flex w-52 flex-col border-l border-slate-200 bg-white/60 backdrop-blur-sm p-4 gap-5">
+          <aside className="hidden lg:flex w-52 flex-col border-l border-amber-500/15 bg-card/60 backdrop-blur-sm p-4 gap-5">
             <div className="space-y-1.5">
               <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 Points
@@ -849,7 +905,7 @@ export default function QuizEditorPage() {
                 onChange={(e) =>
                   updateActive({ points: Number(e.target.value) })
                 }
-                className="bg-slate-50/80 h-9 text-sm"
+                className="bg-card/70 h-9 text-sm"
                 style={{ "--tw-ring-color": themeColor } as React.CSSProperties}
               />
             </div>
@@ -897,13 +953,13 @@ export default function QuizEditorPage() {
               </DropdownMenu>
             </div>
 
-            <div className="rounded-lg bg-slate-50 p-3 text-xs text-muted-foreground space-y-1">
-              <p className="font-medium text-slate-600">Tips</p>
+            <div className="rounded-lg bg-card/70 p-3 text-xs text-muted-foreground space-y-1">
+              <p className="font-medium text-slate-300">Tips</p>
               <TypeTip type={active.question_type} />
             </div>
 
             {/* Mini theme preview swatch */}
-            <div className="mt-auto rounded-lg border border-slate-100 p-3 space-y-2">
+            <div className="mt-auto rounded-lg border border-border/60 p-3 space-y-2">
               <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium">
                 Theme preview
               </p>
@@ -1135,7 +1191,7 @@ function SortableQuestionRow({
         onClick={onClick}
         className={cn(
           "group w-full rounded-lg px-3 py-2.5 text-left transition-all",
-          isActive ? "ring-1" : "hover:bg-slate-50",
+          isActive ? "ring-1" : "hover:bg-slate-950/70",
           isDragging && "shadow-lg",
         )}
         style={
@@ -1166,7 +1222,7 @@ function SortableQuestionRow({
             >
               Q{index + 1} · {typeLabel}
             </p>
-            <p className="mt-0.5 truncate text-xs font-medium text-slate-700">
+            <p className="mt-0.5 truncate text-xs font-medium text-slate-200">
               {question.question?.trim() || "Untitled question"}
             </p>
           </div>
@@ -1239,7 +1295,7 @@ function QuizPreviewModal({
   return (
     <div
       className="fixed inset-0 z-50 flex flex-col"
-      style={{ background: "#f8fafc" }}
+      style={{ background: "var(--background)" }}
     >
       {/* ── Preview top bar ─────────────────────────────────────────────── */}
       <div
@@ -1291,7 +1347,7 @@ function QuizPreviewModal({
             !submitted &&
             (quiz?.banner_url || activity?.instructions) && (
               <div
-                className="rounded-2xl overflow-hidden border shadow-sm"
+                className="rounded-2xl overflow-hidden border border-amber-500/15 bg-card/95 shadow-sm"
                 style={{ borderColor: color + "30" }}
               >
                 {quiz?.banner_url && (
@@ -1310,14 +1366,14 @@ function QuizPreviewModal({
                   </div>
                 )}
                 {activity?.instructions && (
-                  <div className="bg-white px-6 py-4">
+                  <div className="bg-card/95 px-6 py-4">
                     <p
                       className="text-[10px] uppercase tracking-wider font-medium mb-1"
                       style={{ color }}
                     >
                       Instructions
                     </p>
-                    <p className="text-sm text-slate-600 leading-relaxed">
+                    <p className="text-sm text-slate-300 leading-relaxed">
                       {activity.instructions}
                     </p>
                   </div>
@@ -1327,14 +1383,14 @@ function QuizPreviewModal({
 
           {/* Empty state */}
           {total === 0 && (
-            <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-slate-200 bg-white py-20 text-center">
+            <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-amber-500/15 bg-card/90 py-20 text-center">
               <div
                 className="flex h-14 w-14 items-center justify-center rounded-2xl"
                 style={{ background: color + "15" }}
               >
                 <Eye className="h-7 w-7" style={{ color }} />
               </div>
-              <p className="font-semibold text-slate-700">
+              <p className="font-semibold text-slate-200">
                 No saved questions yet
               </p>
               <p className="text-sm text-muted-foreground max-w-xs">
@@ -1346,7 +1402,7 @@ function QuizPreviewModal({
           {/* Submitted screen */}
           {submitted && (
             <div
-              className="flex flex-col items-center gap-5 rounded-2xl border bg-white p-10 shadow-sm text-center"
+              className="flex flex-col items-center gap-5 rounded-2xl border border-amber-500/15 bg-card/95 p-10 shadow-sm text-center"
               style={{ borderColor: color + "30" }}
             >
               <div
@@ -1356,9 +1412,7 @@ function QuizPreviewModal({
                 <Check className="h-8 w-8" style={{ color }} />
               </div>
               <div>
-                <p className="text-xl font-bold text-slate-900">
-                  Quiz submitted!
-                </p>
+                <p className="text-xl font-bold text-white">Quiz submitted!</p>
                 <p className="text-sm text-muted-foreground mt-1">
                   This is how students will see the confirmation screen.
                 </p>
@@ -1371,7 +1425,7 @@ function QuizPreviewModal({
                   return (
                     <div
                       key={q.id}
-                      className="rounded-xl border border-slate-100 bg-slate-50 px-4 py-3"
+                      className="rounded-xl border border-border/60 bg-card/80 px-4 py-3"
                     >
                       <p
                         className="text-[10px] uppercase tracking-wide font-medium mb-1"
@@ -1379,7 +1433,7 @@ function QuizPreviewModal({
                       >
                         Q{i + 1}
                       </p>
-                      <p className="text-xs font-medium text-slate-700 mb-1 line-clamp-1">
+                      <p className="text-xs font-medium text-slate-200 mb-1 line-clamp-1">
                         {q.question || "Untitled question"}
                       </p>
                       <p className="text-xs text-muted-foreground">
@@ -1434,7 +1488,7 @@ function QuizPreviewModal({
                 type="button"
                 onClick={() => setCurrentIndex((i) => Math.max(0, i - 1))}
                 disabled={currentIndex === 0}
-                className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 transition-all hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed"
+                className="rounded-xl border border-amber-500/15 bg-card/90 px-4 py-2 text-sm font-medium text-foreground transition-all hover:bg-card/70 disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 ← Back
               </button>
@@ -1514,7 +1568,8 @@ function PreviewQuestion({
     <div
       className={cn(
         "space-y-5",
-        showCard && "rounded-2xl border bg-white p-6 shadow-sm",
+        showCard &&
+          "rounded-2xl border border-amber-500/15 bg-card/95 p-6 shadow-sm",
       )}
       style={showCard ? { borderColor: color + "25" } : {}}
     >
@@ -1532,7 +1587,7 @@ function PreviewQuestion({
           </span>
         </div>
 
-        <p className="text-base font-semibold text-slate-900 leading-snug">
+        <p className="text-base font-semibold text-white leading-snug">
           {question.question || (
             <span className="italic text-slate-400">Untitled question</span>
           )}
@@ -1564,7 +1619,7 @@ function PreviewQuestion({
                 "flex w-full items-center gap-3 rounded-xl border-2 px-4 py-3 text-left text-sm transition-all",
                 selected
                   ? "font-medium"
-                  : "border-slate-200 bg-white hover:border-slate-300 text-slate-700",
+                  : "border-amber-500/15 bg-card/90 hover:border-amber-300/30 text-foreground",
               )}
               style={
                 selected
@@ -1626,7 +1681,7 @@ function PreviewQuestion({
                 "flex w-full items-center gap-3 rounded-xl border-2 px-4 py-3 text-left text-sm transition-all",
                 checked
                   ? "font-medium"
-                  : "border-slate-200 bg-white hover:border-slate-300 text-slate-700",
+                  : "border-amber-500/15 bg-card/90 hover:border-amber-300/30 text-foreground",
               )}
               style={
                 checked
@@ -1669,7 +1724,7 @@ function PreviewQuestion({
                 "flex-1 rounded-xl border-2 py-4 text-sm font-semibold transition-all",
                 selected
                   ? "text-white"
-                  : "border-slate-200 bg-white text-slate-500 hover:border-slate-300",
+                  : "border-amber-500/15 bg-card/90 text-muted-foreground hover:border-amber-300/30",
               )}
               style={selected ? { background: color, borderColor: color } : {}}
             >
@@ -1689,7 +1744,7 @@ function PreviewQuestion({
         placeholder="Type your answer here…"
         value={(answer as string) ?? ""}
         onChange={(e) => onAnswer(e.target.value)}
-        className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-800 focus:outline-none focus:ring-2 transition-all"
+        className="w-full rounded-xl border border-amber-500/15 bg-slate-950/70 px-4 py-3 text-sm text-amber-50 focus:outline-none focus:ring-2 transition-all"
         style={{ "--tw-ring-color": color + "50" } as React.CSSProperties}
       />,
     );
@@ -1703,7 +1758,7 @@ function PreviewQuestion({
         value={(answer as string) ?? ""}
         onChange={(e) => onAnswer(e.target.value)}
         rows={5}
-        className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-800 focus:outline-none focus:ring-2 transition-all"
+        className="w-full resize-none rounded-xl border border-amber-500/15 bg-slate-950/70 px-4 py-3 text-sm text-amber-50 focus:outline-none focus:ring-2 transition-all"
         style={{ "--tw-ring-color": color + "50" } as React.CSSProperties}
       />,
     );
@@ -1722,7 +1777,7 @@ function PreviewQuestion({
       onAnswer(next);
     };
     return wrapper(
-      <div className="text-sm text-slate-800 leading-loose">
+      <div className="text-sm text-amber-50 leading-loose">
         {parts.map((part, i) => (
           <span key={i}>
             {part}
@@ -1770,7 +1825,7 @@ function PreviewQuestion({
         {current.map((item, i) => (
           <div
             key={i}
-            className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3"
+            className="flex items-center gap-3 rounded-xl border border-amber-500/15 bg-card/90 px-4 py-3"
           >
             <span
               className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
@@ -1778,13 +1833,13 @@ function PreviewQuestion({
             >
               {i + 1}
             </span>
-            <span className="flex-1 text-sm text-slate-700">{item}</span>
+            <span className="flex-1 text-sm text-slate-200">{item}</span>
             <div className="flex flex-col gap-0.5">
               <button
                 type="button"
                 onClick={() => i > 0 && move(i, i - 1)}
                 disabled={i === 0}
-                className="text-slate-300 hover:text-slate-500 disabled:opacity-20 text-xs leading-none"
+                className="text-slate-300 hover:text-slate-400 disabled:opacity-20 text-xs leading-none"
               >
                 ▲
               </button>
@@ -1792,7 +1847,7 @@ function PreviewQuestion({
                 type="button"
                 onClick={() => i < current.length - 1 && move(i, i + 1)}
                 disabled={i === current.length - 1}
-                className="text-slate-300 hover:text-slate-500 disabled:opacity-20 text-xs leading-none"
+                className="text-slate-300 hover:text-slate-400 disabled:opacity-20 text-xs leading-none"
               >
                 ▼
               </button>
@@ -1817,7 +1872,7 @@ function PreviewQuestion({
         </p>
         {pairs.map((pair, i) => (
           <div key={i} className="flex items-center gap-3">
-            <div className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+            <div className="flex-1 rounded-xl border border-amber-500/15 bg-slate-950/70 px-3 py-2 text-sm text-slate-200">
               {pair.left}
             </div>
             <span className="text-slate-300 text-xs">→</span>
@@ -1826,7 +1881,7 @@ function PreviewQuestion({
               onChange={(e) =>
                 onAnswer({ ...matchAnswer, [pair.left]: e.target.value })
               }
-              className="flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2"
+              className="flex-1 rounded-xl border border-amber-500/15 bg-card/90 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2"
               style={{ "--tw-ring-color": color + "50" } as React.CSSProperties}
             >
               <option value="">Select…</option>
@@ -1847,10 +1902,10 @@ function PreviewQuestion({
     const accepted = (content.accepted_types as string[]) ?? [];
     const maxMb = (content.max_size_mb as number) ?? 10;
     return wrapper(
-      <div className="flex flex-col items-center gap-3 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 py-10">
+      <div className="flex flex-col items-center gap-3 rounded-xl border-2 border-dashed border-amber-500/15 bg-slate-950/70 py-10">
         <FileText className="h-8 w-8 text-slate-300" />
         <div className="text-center">
-          <p className="text-sm font-medium text-slate-600">
+          <p className="text-sm font-medium text-slate-300">
             Click to upload a file
           </p>
           <p className="text-xs text-muted-foreground mt-1">
@@ -1880,18 +1935,18 @@ function PreviewQuestion({
     return wrapper(
       <div className="space-y-3">
         {instructions && (
-          <p className="text-sm text-slate-600 bg-slate-50 rounded-xl px-4 py-3">
+          <p className="text-sm text-slate-300 bg-slate-950/70 rounded-xl px-4 py-3">
             {instructions}
           </p>
         )}
-        <div className="flex flex-col items-center gap-3 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 py-8">
+        <div className="flex flex-col items-center gap-3 rounded-xl border-2 border-dashed border-amber-500/15 bg-slate-950/70 py-8">
           <div
             className="flex h-14 w-14 items-center justify-center rounded-full"
             style={{ background: color + "15" }}
           >
             <Music className="h-7 w-7" style={{ color }} />
           </div>
-          <p className="text-sm font-medium text-slate-600">
+          <p className="text-sm font-medium text-slate-300">
             Tap to record your response
           </p>
           <p className="text-xs text-muted-foreground">Max {maxSec}s</p>
@@ -1942,7 +1997,7 @@ function PreviewMedia({
         href={url}
         target="_blank"
         rel="noreferrer"
-        className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600 hover:bg-slate-100 transition-colors"
+        className="flex items-center gap-2 rounded-xl border border-amber-500/15 bg-slate-950/70 px-4 py-3 text-sm text-slate-300 hover:bg-slate-800 transition-colors"
       >
         <FileText className="h-4 w-4" /> View attached PDF
       </a>

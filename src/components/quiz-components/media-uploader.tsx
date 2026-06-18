@@ -110,19 +110,19 @@ export function MediaUploader({
         className={cn(
           "flex w-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed py-6 text-sm transition-all",
           dragOver
-            ? "border-indigo-400 bg-indigo-50"
-            : "border-slate-200 bg-slate-50/60 hover:border-indigo-300 hover:bg-indigo-50/40",
+            ? "border-amber-400/60 bg-amber-400/10"
+            : "border-amber-500/15 bg-card/70 hover:border-amber-300/30 hover:bg-amber-400/10",
           uploading && "pointer-events-none opacity-60",
         )}
       >
         {uploading ? (
           <>
-            <Loader2 className="h-5 w-5 animate-spin text-indigo-400" />
+            <Loader2 className="h-5 w-5 animate-spin text-amber-400" />
             <span className="text-xs text-muted-foreground">Uploading…</span>
           </>
         ) : (
           <>
-            <Upload className="h-5 w-5 text-slate-400" />
+            <Upload className="h-5 w-5 text-muted-foreground" />
             <span className="text-xs text-muted-foreground">
               {label} — click or drag & drop
             </span>
@@ -154,7 +154,7 @@ function MediaPreview({
   const Icon = ICON_MAP[category] ?? FileText;
 
   return (
-    <div className="group relative flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600">
+    <div className="group relative flex items-center gap-2 rounded-lg border border-amber-500/15 bg-card/90 px-3 py-2 text-xs text-foreground">
       {category === "image" && media.file_url ? (
         <img
           src={media.file_url}
@@ -162,8 +162,8 @@ function MediaPreview({
           className="h-10 w-10 rounded object-cover border border-slate-200"
         />
       ) : (
-        <div className="flex h-10 w-10 items-center justify-center rounded bg-slate-100">
-          <Icon className="h-5 w-5 text-slate-400" />
+        <div className="flex h-10 w-10 items-center justify-center rounded bg-card/70">
+          <Icon className="h-5 w-5 text-muted-foreground" />
         </div>
       )}
 
@@ -174,7 +174,7 @@ function MediaPreview({
             href={media.file_url}
             target="_blank"
             rel="noreferrer"
-            className="truncate text-indigo-500 hover:underline max-w-35"
+            className="truncate text-amber-300 hover:text-amber-200 hover:underline max-w-35"
           >
             View file
           </a>
@@ -184,7 +184,7 @@ function MediaPreview({
       <button
         type="button"
         onClick={onRemove}
-        className="ml-1 opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-400 transition-all"
+        className="ml-1 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-red-400 transition-all"
       >
         <X className="h-3.5 w-3.5" />
       </button>

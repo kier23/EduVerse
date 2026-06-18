@@ -31,7 +31,7 @@ function OptionInput({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder ?? "Option text…"}
-      className="bg-slate-50/80 text-sm h-9"
+      className="bg-stone-900/70 text-sm h-9"
     />
   );
 }
@@ -50,8 +50,8 @@ function CorrectBadge({
       className={cn(
         "h-5 rounded-full px-2 text-[10px] font-semibold transition-all shrink-0",
         active
-          ? "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-300"
-          : "bg-slate-100 text-slate-400 hover:bg-slate-200",
+          ? "bg-amber-400/15 text-amber-100 ring-1 ring-amber-400/30"
+          : "bg-card/70 text-muted-foreground hover:bg-amber-400/10",
       )}
     >
       {active ? "✓ Correct" : "Mark correct"}
@@ -87,8 +87,8 @@ export function MultipleChoiceEditor({
             className={cn(
               "flex flex-1 items-center gap-2 rounded-lg border px-3 py-2 transition-colors",
               c.is_correct
-                ? "border-emerald-200 bg-emerald-50/60"
-                : "border-slate-200 bg-slate-50/60",
+                ? "border-emerald-500/40 bg-emerald-500/10"
+                : "border-amber-500/15 bg-stone-900/50",
             )}
           >
             <OptionInput
@@ -151,8 +151,8 @@ export function MultipleSelectEditor({
             className={cn(
               "flex flex-1 items-center gap-2 rounded-lg border px-3 py-2 transition-colors",
               c.is_correct
-                ? "border-emerald-200 bg-emerald-50/60"
-                : "border-slate-200 bg-slate-50/60",
+                ? "border-amber-500/60 bg-amber-400/10"
+                : "border-amber-500/15 bg-stone-900/50",
             )}
           >
             <OptionInput
@@ -206,9 +206,9 @@ export function TrueFalseEditor({
             "flex-1 rounded-xl border-2 py-4 text-sm font-semibold capitalize transition-all",
             correctAnswer === val
               ? val === "true"
-                ? "border-emerald-400 bg-emerald-50 text-emerald-700"
-                : "border-red-400 bg-red-50 text-red-700"
-              : "border-slate-200 bg-slate-50 text-slate-400 hover:border-slate-300",
+                ? "border-emerald-400/60 bg-emerald-400/10 text-emerald-100"
+                : "border-red-400/60 bg-red-400/10 text-red-100"
+              : "border-amber-500/15 bg-card/70 text-muted-foreground hover:border-amber-300/30",
           )}
         >
           {val === "true" ? "✓ True" : "✗ False"}
@@ -236,7 +236,7 @@ export function ShortAnswerEditor({
       </label>
       {multiline ? (
         <textarea
-          className="flex w-full rounded-md border border-input bg-slate-50/80 px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
+          className="flex w-full rounded-md border border-input bg-card/70 px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
           rows={4}
           placeholder="Enter a sample answer for reference…"
           value={sampleAnswer}
@@ -247,7 +247,7 @@ export function ShortAnswerEditor({
           placeholder="Enter expected answer…"
           value={sampleAnswer}
           onChange={(e) => onChange(e.target.value)}
-          className="bg-slate-50/80"
+          className="bg-card/70"
         />
       )}
       <p className="text-xs text-muted-foreground">
@@ -289,13 +289,13 @@ export function MatchingEditor({
             placeholder={`Term ${i + 1}`}
             value={p.left}
             onChange={(e) => update(i, { left: e.target.value })}
-            className="bg-slate-50/80 text-sm h-9"
+            className="bg-stone-900/70 text-sm h-9"
           />
           <Input
             placeholder={`Match ${i + 1}`}
             value={p.right}
             onChange={(e) => update(i, { right: e.target.value })}
-            className="bg-slate-50/80 text-sm h-9"
+            className="bg-stone-900/70 text-sm h-9"
           />
           <button
             type="button"
@@ -345,17 +345,20 @@ export function FillBlankEditor({
           Sentence template
         </label>
         <textarea
-          className="flex w-full rounded-md border border-input bg-slate-50/80 px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none font-mono"
+          className="flex w-full rounded-md border border-input bg-card/70 px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none font-mono"
           rows={3}
           placeholder="The capital of France is [blank] and its currency is [blank]."
           value={template}
           onChange={(e) => onTemplateChange(e.target.value)}
         />
         <p className="text-xs text-muted-foreground">
-          Use <code className="rounded bg-slate-100 px-1 text-xs">[blank]</code>{" "}
+          Use{" "}
+          <code className="rounded bg-stone-800 px-1 text-xs text-amber-200">
+            [blank]
+          </code>{" "}
           to mark each gap.{" "}
           {blankCount > 0 && (
-            <span className="text-indigo-600 font-medium">
+            <span className="text-amber-400 font-medium">
               {blankCount} blank{blankCount !== 1 ? "s" : ""} detected.
             </span>
           )}
@@ -376,7 +379,7 @@ export function FillBlankEditor({
                 placeholder={`Answer for blank ${i + 1}`}
                 value={answers[i] ?? ""}
                 onChange={(e) => updateAnswer(i, e.target.value)}
-                className="bg-slate-50/80 text-sm h-9"
+                className="bg-card/70 text-sm h-9"
               />
             </div>
           ))}
@@ -407,7 +410,7 @@ export function OrderingEditor({
       </p>
       {items.map((item, i) => (
         <div key={i} className="flex items-center gap-2">
-          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-semibold text-indigo-600">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-400/10 text-xs font-semibold text-amber-200">
             {i + 1}
           </span>
           <GripVertical className="h-4 w-4 text-slate-300 shrink-0" />
@@ -415,7 +418,7 @@ export function OrderingEditor({
             placeholder={`Item ${i + 1}`}
             value={item}
             onChange={(e) => update(i, e.target.value)}
-            className="flex-1 bg-slate-50/80 text-sm h-9"
+            className="flex-1 bg-card/70 text-sm h-9"
           />
           <button
             type="button"
@@ -474,8 +477,8 @@ export function FileUploadEditor({
               className={cn(
                 "rounded-full px-3 py-1 text-xs font-medium border transition-all",
                 acceptedTypes.includes(t)
-                  ? "bg-indigo-100 text-indigo-700 border-indigo-200"
-                  : "bg-slate-50 text-slate-500 border-slate-200 hover:border-slate-300",
+                  ? "bg-amber-400/15 text-amber-100 border-amber-400/30"
+                  : "bg-card/70 text-muted-foreground border-amber-500/15 hover:border-amber-300/30",
               )}
             >
               .{t}
@@ -493,7 +496,7 @@ export function FileUploadEditor({
           max={100}
           value={maxSizeMb}
           onChange={(e) => onMaxSizeChange(Number(e.target.value))}
-          className="w-32 bg-slate-50/80"
+          className="w-32 bg-card/70"
         />
       </div>
     </div>
@@ -533,14 +536,14 @@ export function ImageChoiceEditor({
             key={i}
             className={cn(
               "relative flex flex-col rounded-xl border-2 overflow-hidden transition-all",
-              c.is_correct ? "border-emerald-400" : "border-slate-200",
+              c.is_correct ? "border-emerald-400/60" : "border-amber-500/15",
             )}
           >
             {/* Image area */}
             <button
               type="button"
               onClick={() => fileRefs.current[i]?.click()}
-              className="relative flex h-28 w-full items-center justify-center bg-slate-50 hover:bg-slate-100 transition-colors"
+              className="relative flex h-28 w-full items-center justify-center bg-card/70 hover:bg-amber-400/10 transition-colors"
             >
               {c.image_url ? (
                 <img
@@ -549,7 +552,7 @@ export function ImageChoiceEditor({
                   className="h-full w-full object-cover"
                 />
               ) : (
-                <div className="flex flex-col items-center gap-1 text-slate-300">
+                <div className="flex flex-col items-center gap-1 text-muted-foreground">
                   <ImageIcon className="h-8 w-8" />
                   <span className="text-xs">Click to upload</span>
                 </div>
@@ -569,7 +572,7 @@ export function ImageChoiceEditor({
             </button>
 
             {/* Caption + controls */}
-            <div className="flex items-center gap-2 p-2 bg-white">
+            <div className="flex items-center gap-2 p-2 bg-card/90">
               <Input
                 placeholder={`Caption ${i + 1}`}
                 value={c.choice_text}
@@ -618,7 +621,7 @@ export function AudioResponseEditor({
 }) {
   return (
     <div className="space-y-4">
-      <div className="rounded-xl bg-indigo-50 border border-indigo-100 p-3 text-xs text-indigo-700">
+      <div className="rounded-xl bg-amber-400/10 border border-amber-500/15 p-3 text-xs text-amber-100">
         Students will record audio directly in the browser (up to the max
         duration you set).
       </div>
@@ -627,7 +630,7 @@ export function AudioResponseEditor({
           Prompt / instructions
         </label>
         <textarea
-          className="flex w-full rounded-md border border-input bg-slate-50/80 px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
+          className="flex w-full rounded-md border border-input bg-card/70 px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
           rows={3}
           placeholder="e.g. Explain the concept of photosynthesis in 60 seconds."
           value={instructions}
@@ -644,7 +647,7 @@ export function AudioResponseEditor({
           max={600}
           value={maxDurationSec}
           onChange={(e) => onMaxDurationChange(Number(e.target.value))}
-          className="w-36 bg-slate-50/80"
+          className="w-36 bg-card/70"
         />
       </div>
     </div>

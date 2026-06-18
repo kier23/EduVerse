@@ -62,7 +62,7 @@ export function AccountsManagementPage() {
                   <div className="flex items-center gap-2">
                     <select
                       className={cn(
-                        "h-10 rounded-xl border border-indigo-100 bg-white/80 px-3 text-sm shadow-sm backdrop-blur-sm",
+                        "h-10 rounded-xl border border-indigo-100 bg-stone-950/75 px-3 text-sm shadow-sm backdrop-blur-sm",
                         "focus-visible:border-indigo-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/30",
                       )}
                       value={draftRoles[account.id] ?? "student"}
@@ -87,7 +87,7 @@ export function AccountsManagementPage() {
               ))}
             </div>
           )}
-          {status ? <p className="mt-4 rounded-xl bg-emerald-50 px-4 py-2 text-sm text-emerald-700">{status}</p> : null}
+          {status ? <p className="mt-4 rounded-xl bg-emerald-400/10 px-4 py-2 text-sm text-emerald-700">{status}</p> : null}
         </CardContent>
       </Card>
     </AppShell>

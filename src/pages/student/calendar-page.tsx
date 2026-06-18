@@ -54,13 +54,13 @@ const EVENT_COLORS: Record<string, { bg: string; text: string; dot: string }> =
   {
     personal: {
       bg: "bg-indigo-100",
-      text: "text-indigo-700",
-      dot: "bg-indigo-500",
+      text: "text-amber-700",
+      dot: "bg-amber-400/100",
     },
     academic: {
       bg: "bg-violet-100",
       text: "text-violet-700",
-      dot: "bg-violet-500",
+      dot: "bg-violet-400/100",
     },
     reminder: {
       bg: "bg-amber-100",
@@ -68,7 +68,7 @@ const EVENT_COLORS: Record<string, { bg: string; text: string; dot: string }> =
       dot: "bg-amber-500",
     },
     deadline: { bg: "bg-red-100", text: "text-red-700", dot: "bg-red-500" },
-    other: { bg: "bg-slate-100", text: "text-slate-600", dot: "bg-slate-400" },
+    other: { bg: "bg-slate-100", text: "text-slate-300", dot: "bg-slate-400" },
   };
 
 function colorFor(type: string | null) {
@@ -213,25 +213,25 @@ export function StudentCalendarPage() {
       <div className="flex flex-col gap-5 xl:flex-row">
         {/* ── Calendar panel ──────────────────────────────────────────────── */}
         <div className="flex-1 min-w-0">
-          <div className="rounded-2xl border border-white/60 bg-white/80 shadow-lg backdrop-blur-md overflow-hidden">
+          <div className="rounded-2xl border border-amber-500/15 bg-stone-950/75 shadow-lg backdrop-blur-md overflow-hidden">
             {/* Month header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
               <button
                 type="button"
                 onClick={prevMonth}
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 transition-colors"
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800 transition-colors"
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
               <div className="text-center">
-                <p className="text-sm font-semibold text-slate-900">
+                <p className="text-sm font-semibold text-white">
                   {MONTHS[month]} {year}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={nextMonth}
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 transition-colors"
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800 transition-colors"
               >
                 <ChevronRight className="h-4 w-4" />
               </button>
@@ -279,7 +279,7 @@ export function StudentCalendarPage() {
                       onClick={() => setSelectedDay(day)}
                       className={cn(
                         "group min-h-16 flex flex-col p-1.5 border-b border-r border-slate-50 text-left transition-all",
-                        isSelected ? "bg-indigo-50" : "hover:bg-slate-50",
+                        isSelected ? "bg-amber-400/10" : "hover:bg-slate-950/70",
                         isOtherMonth && "opacity-30",
                       )}
                     >
@@ -287,10 +287,10 @@ export function StudentCalendarPage() {
                         className={cn(
                           "mb-1 flex h-6 w-6 items-center justify-center self-end rounded-full text-xs font-medium transition-all",
                           isToday
-                            ? "bg-indigo-500 text-white"
+                            ? "bg-amber-400/100 text-white"
                             : isSelected
-                              ? "bg-indigo-100 text-indigo-700"
-                              : "text-slate-600",
+                              ? "bg-indigo-100 text-amber-700"
+                              : "text-slate-300",
                         )}
                       >
                         {day.getDate()}
@@ -340,11 +340,11 @@ export function StudentCalendarPage() {
 
         {/* ── Day detail panel ─────────────────────────────────────────────── */}
         <div className="w-full xl:w-72 shrink-0">
-          <div className="rounded-2xl border border-white/60 bg-white/80 shadow-lg backdrop-blur-md overflow-hidden sticky top-4">
+          <div className="rounded-2xl border border-amber-500/15 bg-stone-950/75 shadow-lg backdrop-blur-md overflow-hidden sticky top-4">
             {/* Day header */}
             <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
               <div>
-                <p className="text-sm font-semibold text-slate-900">
+                <p className="text-sm font-semibold text-white">
                   {selectedDay
                     ? selectedDay.toLocaleDateString("en-US", {
                         weekday: "long",
@@ -354,7 +354,7 @@ export function StudentCalendarPage() {
                     : "Select a day"}
                 </p>
                 {selectedDay && isSameDay(selectedDay, today) && (
-                  <p className="text-[10px] text-indigo-500 font-medium">
+                  <p className="text-[10px] text-amber-500 font-medium">
                     Today
                   </p>
                 )}
@@ -363,7 +363,7 @@ export function StudentCalendarPage() {
                 <button
                   type="button"
                   onClick={() => openCreate(selectedDay)}
-                  className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-500 text-white hover:bg-indigo-600 transition-colors"
+                  className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-400/100 text-white hover:bg-amber-600 transition-colors"
                 >
                   <Plus className="h-4 w-4" />
                 </button>
@@ -383,7 +383,7 @@ export function StudentCalendarPage() {
                   <button
                     type="button"
                     onClick={() => openCreate(selectedDay)}
-                    className="text-xs text-indigo-500 hover:underline"
+                    className="text-xs text-amber-500 hover:underline"
                   >
                     Add one
                   </button>
@@ -446,7 +446,7 @@ export function StudentCalendarPage() {
         }}
       >
         <DialogContent className="sm:max-w-md overflow-hidden p-0">
-          <div className="h-1 bg-linear-to-r from-indigo-500 via-violet-500 to-sky-500" />
+          <div className="h-1 bg-linear-to-r from-amber-500 via-orange-500 to-yellow-500" />
           <div className="p-6">
             <DialogHeader className="mb-5">
               <DialogTitle>Add Event</DialogTitle>
@@ -464,7 +464,7 @@ export function StudentCalendarPage() {
                   placeholder="e.g. Study session"
                   value={form.title}
                   onChange={(e) => setForm({ ...form, title: e.target.value })}
-                  className="bg-slate-50/80"
+                  className="bg-slate-950/70"
                 />
               </div>
 
@@ -479,7 +479,7 @@ export function StudentCalendarPage() {
                   onChange={(e) =>
                     setForm({ ...form, description: e.target.value })
                   }
-                  className="flex w-full rounded-md border border-input bg-slate-50/80 px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
+                  className="flex w-full rounded-md border border-input bg-slate-950/70 px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
                 />
               </div>
 
@@ -494,7 +494,7 @@ export function StudentCalendarPage() {
                     onChange={(e) =>
                       setForm({ ...form, start_date: e.target.value })
                     }
-                    className="bg-slate-50/80"
+                    className="bg-slate-950/70"
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -507,7 +507,7 @@ export function StudentCalendarPage() {
                     onChange={(e) =>
                       setForm({ ...form, end_date: e.target.value })
                     }
-                    className="bg-slate-50/80"
+                    className="bg-slate-950/70"
                   />
                 </div>
               </div>
@@ -528,7 +528,7 @@ export function StudentCalendarPage() {
                           "rounded-full px-3 py-1 text-xs font-medium capitalize border transition-all",
                           form.event_type === t
                             ? cn(c.bg, c.text, "border-transparent")
-                            : "border-slate-200 bg-slate-50 text-slate-500 hover:border-slate-300",
+                            : "border-amber-500/15 bg-slate-950/70 text-slate-400 hover:border-amber-300/30",
                         )}
                       >
                         {t}
@@ -559,7 +559,7 @@ export function StudentCalendarPage() {
               size="sm"
               onClick={handleCreate}
               disabled={creating || !form.title.trim() || !form.start_date}
-              className="bg-indigo-500 hover:bg-indigo-600 text-white min-w-24"
+              className="bg-amber-400/100 hover:bg-amber-600 text-white min-w-24"
             >
               {creating ? (
                 <>

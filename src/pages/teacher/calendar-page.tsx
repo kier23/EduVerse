@@ -22,15 +22,15 @@ import { useAuth } from "@/providers/auth-provider";
 import { Clock, Trash2, CalendarDays, X } from "lucide-react";
 
 const EVENT_COLORS: Record<string, string> = {
-  general: "bg-indigo-500",
+  general: "bg-amber-400/100",
   exam: "bg-red-500",
   meeting: "bg-amber-500",
-  deadline: "bg-emerald-500",
+  deadline: "bg-emerald-400/100",
   activity: "bg-sky-500",
 };
 
 const EVENT_TEXT_COLORS: Record<string, string> = {
-  general: "text-indigo-700",
+  general: "text-amber-700",
   exam: "text-red-700",
   meeting: "text-amber-700",
   deadline: "text-emerald-700",
@@ -38,10 +38,10 @@ const EVENT_TEXT_COLORS: Record<string, string> = {
 };
 
 const EVENT_BG_LIGHT: Record<string, string> = {
-  general: "bg-indigo-50",
+  general: "bg-amber-400/10",
   exam: "bg-red-50",
   meeting: "bg-amber-50",
-  deadline: "bg-emerald-50",
+  deadline: "bg-emerald-400/10",
   activity: "bg-sky-50",
 };
 
@@ -159,7 +159,7 @@ export function TeacherCalendarPage() {
       <div className="grid gap-6 lg:grid-cols-[1fr_400px]">
         {/* ── Calendar ── */}
         <Card>
-          <div className="h-1 bg-gradient-to-r from-sky-500 to-indigo-500" />
+          <div className="h-1 bg-linear-to-r from-sky-500 to-indigo-500" />
           <CardContent className="p-4">
             <Calendar
               mode="single"
@@ -167,7 +167,7 @@ export function TeacherCalendarPage() {
               onSelect={setSelectedDate}
               month={month}
               onMonthChange={setMonth}
-              className="w-full rounded-xl bg-white p-3"
+              className="w-full rounded-xl border border-amber-500/15 bg-stone-950/75 p-3 shadow-xl shadow-amber-500/5 backdrop-blur-md"
               classNames={{
                 months: "w-full",
                 month: "w-full",
@@ -189,9 +189,9 @@ export function TeacherCalendarPage() {
                   return (
                     <button
                       onClick={() => setSelectedDate(day.date)}
-                      className={`relative flex h-auto min-h-[4.5rem] w-full min-w-0 flex-col items-start overflow-hidden rounded-lg border p-1 text-left transition hover:bg-slate-50 ${
+                      className={`relative flex h-auto min-h-12 w-full min-w-0 flex-col items-start overflow-hidden rounded-lg border p-1 text-left transition hover:bg-slate-950/70 sm:min-h-18 ${
                         isSelected
-                          ? "border-indigo-400 bg-indigo-50 ring-1 ring-indigo-400"
+                          ? "border-indigo-400 bg-amber-400/10 ring-1 ring-indigo-400"
                           : "border-transparent"
                       }`}
                     >
@@ -199,8 +199,8 @@ export function TeacherCalendarPage() {
                       <span
                         className={`mb-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
                           isSelected
-                            ? "bg-indigo-500 text-white"
-                            : "text-slate-700"
+                            ? "bg-cyan-400 text-white"
+                            : "text-slate-200"
                         }`}
                       >
                         {format(day.date, "d")}
@@ -234,7 +234,7 @@ export function TeacherCalendarPage() {
         <div className="space-y-4">
           {/* Selected Day Header */}
           <Card>
-            <div className="h-1 bg-gradient-to-r from-violet-500 to-purple-500" />
+            <div className="h-1 bg-linear-to-r from-violet-500 to-purple-500" />
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-base">
@@ -251,7 +251,7 @@ export function TeacherCalendarPage() {
                       setSelectedDates([selectedDate]);
                     }
                   }}
-                  className="h-8 bg-indigo-500 hover:bg-indigo-600 text-white text-xs"
+                  className="h-8 bg-cyan-400 hover:bg-amber-600 text-white text-xs"
                 >
                   {showForm ? "Cancel" : "+ Add Event"}
                 </Button>
@@ -262,7 +262,7 @@ export function TeacherCalendarPage() {
           {/* ── Add Event Form with Calendar Picker ── */}
           {showForm && (
             <Card className="animate-in slide-in-from-top-2 duration-200">
-              <div className="h-1 bg-gradient-to-r from-emerald-400 to-sky-500" />
+              <div className="h-1 bg-linear-to-r from-emerald-400 to-sky-500" />
               <CardHeader className="pb-2">
                 <CardTitle className="text-base">New Event</CardTitle>
               </CardHeader>
@@ -286,7 +286,7 @@ export function TeacherCalendarPage() {
                       <CalendarDays className="mr-1 inline h-3.5 w-3.5" />
                       Select date(s) — click to toggle
                     </label>
-                    <div className="rounded-lg border bg-white p-1">
+                    <div className="rounded-lg border border-amber-500/15 bg-slate-950/70 p-1 shadow-inner shadow-amber-500/5">
                       <Calendar
                         mode="multiple"
                         selected={selectedDates}
@@ -303,7 +303,7 @@ export function TeacherCalendarPage() {
                           .map((d, i) => (
                             <span
                               key={i}
-                              className="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700"
+                              className="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-amber-700"
                             >
                               {format(d, "MMM d")}
                               <button
@@ -366,7 +366,7 @@ export function TeacherCalendarPage() {
                   <Button
                     type="submit"
                     disabled={selectedDates.length === 0 || !title}
-                    className="w-full bg-indigo-500 hover:bg-indigo-600 text-white disabled:opacity-50"
+                    className="w-full bg-cyan-400 hover:bg-amber-600 text-white disabled:opacity-50"
                   >
                     {selectedDates.length > 1
                       ? `Add Event to ${selectedDates.length} dates`
@@ -379,15 +379,15 @@ export function TeacherCalendarPage() {
 
           {/* ── Events for selected day ── */}
           <Card>
-            <div className="h-1 bg-gradient-to-r from-amber-400 to-orange-500" />
+            <div className="h-1 bg-linear-to-r from-amber-400 to-orange-500" />
             <CardHeader className="pb-2">
               <CardTitle className="text-base">Schedule</CardTitle>
             </CardHeader>
             <CardContent>
               {selectedDateEvents.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-8 text-center">
-                  <div className="mb-3 rounded-full bg-slate-100 p-3">
-                    <Clock className="h-5 w-5 text-muted-foreground" />
+                  <div className="mb-3 rounded-full bg-amber-400/10 p-3 ring-1 ring-cyan-400/20">
+                    <Clock className="h-5 w-5 text-amber-100" />
                   </div>
                   <p className="text-sm text-muted-foreground">
                     No events scheduled for this day.
@@ -395,7 +395,7 @@ export function TeacherCalendarPage() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="mt-2 text-indigo-500 text-xs"
+                    className="mt-2 text-amber-500 text-xs"
                     onClick={() => {
                       setShowForm(true);
                       if (selectedDate) setSelectedDates([selectedDate]);
@@ -419,7 +419,7 @@ export function TeacherCalendarPage() {
                     .map((evt) => (
                       <div
                         key={evt.id}
-                        className="group relative rounded-xl border bg-white/60 p-3 backdrop-blur-sm transition hover:shadow-md"
+                        className="group relative rounded-xl border bg-slate-900/65 p-3 backdrop-blur-sm transition hover:shadow-md"
                       >
                         <div className="flex items-start gap-3">
                           <div
