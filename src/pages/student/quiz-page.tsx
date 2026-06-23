@@ -54,7 +54,7 @@ function isManualGrade(type: string | null | undefined): boolean {
 // Returns true if the answer for a given question is considered blank/empty
 function isAnswerBlank(
   answer: Answer | undefined,
-  type: string | null | undefined,
+  _question_type: string | null,
 ): boolean {
   if (answer === undefined || answer === null) return true;
   if (typeof answer === "string") return answer.trim() === "";
@@ -146,7 +146,6 @@ function RepeatAttemptDialog({
 
 function BlankAnswerBanner({
   blankIndices,
-  color,
   onGoTo,
 }: {
   blankIndices: number[];

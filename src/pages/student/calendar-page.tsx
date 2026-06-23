@@ -280,7 +280,7 @@ export function StudentCalendarPage() {
                         className={cn(
                           "mb-1 flex h-5 w-5 sm:h-6 sm:w-6 items-center justify-center self-end rounded-full text-[10px] sm:text-xs font-medium transition-all",
                           isToday
-                            ? "bg-amber-400/100 text-white"
+                            ? "bg-amber-400 text-white"
                             : isSelected
                               ? "bg-indigo-100 text-amber-700"
                               : "text-slate-300",
@@ -372,7 +372,7 @@ export function StudentCalendarPage() {
                 <button
                   type="button"
                   onClick={() => openCreate(selectedDay)}
-                  className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-400/100 text-white hover:bg-amber-600 transition-colors"
+                  className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-400 text-white hover:bg-amber-600 transition-colors"
                 >
                   <Plus className="h-4 w-4" />
                 </button>
@@ -656,7 +656,7 @@ export function StudentCalendarPage() {
               size="sm"
               onClick={handleCreate}
               disabled={creating || !form.title.trim() || !form.start_date}
-              className="bg-amber-400/100 hover:bg-amber-600 text-white min-w-24"
+              className="bg-amber-400 hover:bg-amber-600 text-white min-w-24"
             >
               {creating ? (
                 <>
