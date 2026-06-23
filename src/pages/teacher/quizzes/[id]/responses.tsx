@@ -695,7 +695,7 @@ function AnswerRow({
         {hasAnswer ? (
           <>
             {answer.answer_text && (
-              <p className="text-xs text-stone-300 bg-stone-900/60 border border-amber-500/10 rounded-lg px-3 py-2 leading-relaxed whitespace-pre-wrap break-words">
+              <p className="text-xs text-stone-300 bg-stone-900/60 border border-amber-500/10 rounded-lg px-3 py-2 leading-relaxed whitespace-pre-wrap wrap-break-word">
                 {answer.answer_text}
               </p>
             )}

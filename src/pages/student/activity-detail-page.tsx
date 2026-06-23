@@ -27,7 +27,6 @@ import { AppShell } from "@/layouts/app-shell";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/providers/auth-provider";
 
-/* ─── types ──────────────────────────────────────────────────────────────── */
 interface Activity {
   id: string;
   subject_id: string;
@@ -62,7 +61,6 @@ interface Submission {
   files: SubmissionFile[];
 }
 
-/* ─── helpers ────────────────────────────────────────────────────────────── */
 function formatDate(d: string | null) {
   if (!d) return "No due date";
   return new Date(d).toLocaleDateString("en-US", {
@@ -86,7 +84,6 @@ function formatBytes(bytes: number | null) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-/* ─── component ──────────────────────────────────────────────────────────── */
 export function ActivityDetailPage() {
   const { activityId } = useParams<{ activityId: string }>();
   const { user } = useAuth();
@@ -96,20 +93,17 @@ export function ActivityDetailPage() {
   const [submission, setSubmission] = useState<Submission | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // form state
   const [submissionText, setSubmissionText] = useState("");
   const [stagedFiles, setStagedFiles] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  /* fetch activity + existing submission */
   useEffect(() => {
     if (!activityId || !user) return;
     setLoading(true);
 
     (async () => {
-      // fetch activity
       const { data: act, error: actErr } = await supabase
         .from("activities")
         .select("*")
@@ -122,7 +116,6 @@ export function ActivityDetailPage() {
       }
       setActivity(act as Activity);
 
-      // fetch existing submission
       const { data: sub } = await supabase
         .from("activity_submissions")
         .select("*")
@@ -145,7 +138,6 @@ export function ActivityDetailPage() {
     })();
   }, [activityId, user]);
 
-  /* file staging */
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const picked = Array.from(e.target.files ?? []);
     setStagedFiles((prev) => {
@@ -158,7 +150,6 @@ export function ActivityDetailPage() {
   const removeStaged = (name: string) =>
     setStagedFiles((prev) => prev.filter((f) => f.name !== name));
 
-  /* submit */
   const handleSubmit = async () => {
     if (!user || !activity) return;
     setSubmitting(true);
@@ -168,7 +159,6 @@ export function ActivityDetailPage() {
       let submissionId = submission?.id ?? null;
 
       if (!submissionId) {
-        // create submission row
         const { data: newSub, error: subErr } = await supabase
           .from("activity_submissions")
           .insert({
@@ -184,7 +174,6 @@ export function ActivityDetailPage() {
           throw new Error(subErr?.message ?? "Failed to create submission");
         submissionId = newSub.id;
       } else {
-        // update existing submission text
         const { error: updErr } = await supabase
           .from("activity_submissions")
           .update({
@@ -199,7 +188,6 @@ export function ActivityDetailPage() {
 
       if (!submissionId) throw new Error("Submission ID is missing");
 
-      // upload staged files
       const uploadedFiles: Omit<SubmissionFile, "id" | "uploaded_at">[] = [];
 
       for (const file of stagedFiles) {
@@ -228,11 +216,9 @@ export function ActivityDetailPage() {
         const { error: fileErr } = await supabase
           .from("activity_submission_files")
           .insert(uploadedFiles);
-
         if (fileErr) throw new Error(fileErr.message);
       }
 
-      // refresh submission state
       const { data: updatedSub } = await supabase
         .from("activity_submissions")
         .select("*")
@@ -256,7 +242,6 @@ export function ActivityDetailPage() {
     }
   };
 
-  /* ─── render ─────────────────────────────────────────────────────────────── */
   const overdue = isPast(activity?.due_date ?? null);
   const isSubmitted = !!submission;
   const isGraded = submission?.status === "graded";
@@ -283,7 +268,7 @@ export function ActivityDetailPage() {
   return (
     <AppShell title={activity?.title ?? "Activity"}>
       {/* Back */}
-      <div className="mb-6">
+      <div className="mb-5 sm:mb-6">
         <button
           type="button"
           onClick={() => navigate(-1)}
@@ -315,21 +300,23 @@ export function ActivityDetailPage() {
                 </span>
               )}
             </div>
-            <h1 className="text-xl font-bold text-white">{activity?.title}</h1>
+            <h1 className="text-lg sm:text-xl font-bold text-white">
+              {activity?.title}
+            </h1>
           </>
         )}
       </div>
 
       {!loading && activity && (
-        <div className="grid gap-6 xl:grid-cols-[1fr_360px]">
-          {/* On mobile: status sidebar shows first */}
+        <div className="grid gap-5 sm:gap-6 xl:grid-cols-[1fr_360px]">
+          {/* Status sidebar — shown first on mobile */}
           <div className="space-y-4 xl:order-2 xl:col-start-2">
             {/* Status card */}
             <Card>
               <div
                 className={`h-1 ${isGraded ? "bg-linear-to-r from-emerald-500 to-teal-500" : isSubmitted ? "bg-linear-to-r from-sky-500 to-indigo-500" : "bg-linear-to-r from-slate-300 to-slate-400"}`}
               />
-              <CardHeader>
+              <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
                   Status
                 </CardTitle>
@@ -364,7 +351,6 @@ export function ActivityDetailPage() {
                   </p>
                 )}
 
-                {/* Score */}
                 {isGraded &&
                   submission?.score !== null &&
                   submission?.score !== undefined && (
@@ -381,7 +367,6 @@ export function ActivityDetailPage() {
                     </div>
                   )}
 
-                {/* Feedback */}
                 {submission?.feedback && (
                   <div className="rounded-xl border border-stone-100 bg-stone-950/70 px-4 py-3">
                     <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">
@@ -395,10 +380,10 @@ export function ActivityDetailPage() {
               </CardContent>
             </Card>
 
-            {/* Attached files */}
+            {/* Submitted files */}
             {isSubmitted && submission.files.length > 0 && (
               <Card>
-                <CardHeader>
+                <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
                     Submitted Files
                   </CardTitle>
@@ -434,7 +419,7 @@ export function ActivityDetailPage() {
           </div>
 
           {/* Left — details + submission form */}
-          <div className="space-y-6 xl:order-1 xl:col-start-1">
+          <div className="space-y-5 sm:space-y-6 xl:order-1 xl:col-start-1">
             {/* Activity info */}
             <Card>
               <div className="h-1 bg-linear-to-r from-violet-500 to-purple-500" />
@@ -442,13 +427,9 @@ export function ActivityDetailPage() {
                 <CardTitle className="text-base">Details</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex flex-wrap gap-3 text-sm">
+                <div className="flex flex-wrap gap-2 sm:gap-3 text-sm">
                   <span
-                    className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-medium ${
-                      overdue
-                        ? "bg-red-50 text-red-600"
-                        : "bg-violet-400/10 text-violet-700"
-                    }`}
+                    className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-medium ${overdue ? "bg-red-50 text-red-600" : "bg-violet-400/10 text-violet-700"}`}
                   >
                     <CalendarDays className="h-3.5 w-3.5" />
                     Due {formatDate(activity.due_date)}
@@ -517,7 +498,6 @@ export function ActivityDetailPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {/* Text area */}
                   <div>
                     <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
                       Answer / Notes
@@ -531,7 +511,6 @@ export function ActivityDetailPage() {
                     />
                   </div>
 
-                  {/* File drop zone */}
                   <div>
                     <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
                       Attach Files
@@ -539,7 +518,7 @@ export function ActivityDetailPage() {
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      className="w-full rounded-xl border-2 border-dashed border-amber-500/15 bg-slate-950/60 px-4 py-6 text-center transition-colors hover:border-amber-300/30 hover:bg-amber-400/10"
+                      className="w-full rounded-xl border-2 border-dashed border-amber-500/15 bg-slate-950/60 px-4 py-5 sm:py-6 text-center transition-colors hover:border-amber-300/30 hover:bg-amber-400/10"
                     >
                       <Upload className="mx-auto h-6 w-6 text-slate-400 mb-2" />
                       <p className="text-sm font-medium text-slate-300">
@@ -558,7 +537,6 @@ export function ActivityDetailPage() {
                     />
                   </div>
 
-                  {/* Staged files */}
                   {stagedFiles.length > 0 && (
                     <ul className="space-y-2">
                       {stagedFiles.map((f) => (
@@ -619,7 +597,7 @@ export function ActivityDetailPage() {
               </Card>
             )}
 
-            {/* Read-only submission summary after submission */}
+            {/* Read-only submission summary */}
             {isSubmitted && (
               <Card>
                 <div

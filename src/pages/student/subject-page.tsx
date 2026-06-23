@@ -59,13 +59,10 @@ export function StudentSubjectPage() {
   const [materials, setMaterials] = useState<Material[]>([]);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
-  // quizId per activity_id — fetched once
   const [quizIds, setQuizIds] = useState<Record<string, string>>({});
-  // Previous attempt scores keyed by quiz_id
   const [attemptScores, setAttemptScores] = useState<
     Record<string, number | null>
   >({});
-  // NEW ↓
   const [attemptCounts, setAttemptCounts] = useState<Record<string, number>>(
     {},
   );
@@ -88,7 +85,6 @@ export function StudentSubjectPage() {
         setMaterials(mats);
         setActivities(acts);
 
-        // Fetch quiz rows for all quiz-type activities
         const quizActivities = acts.filter((a) => a.type === "quiz");
         if (quizActivities.length > 0) {
           const { data: quizRows } = await supabase
@@ -117,7 +113,6 @@ export function StudentSubjectPage() {
           );
           setQuizAttemptsAllowed(allowedMap);
 
-          // Fetch student's best attempt per quiz
           const quizIdList = Object.values(idMap);
           if (quizIdList.length > 0) {
             const { data: attempts } = await supabase
@@ -172,7 +167,7 @@ export function StudentSubjectPage() {
   return (
     <AppShell title={subject?.subject_name ?? "Subject"}>
       {/* Back + header */}
-      <div className="mb-6">
+      <div className="mb-5 sm:mb-6">
         <button
           type="button"
           onClick={() => navigate("/student/dashboard")}
@@ -192,7 +187,7 @@ export function StudentSubjectPage() {
             <p className="text-sm font-semibold uppercase tracking-wider text-amber-600">
               {subject?.subject_code}
             </p>
-            <h1 className="mt-1 text-xl font-bold text-white">
+            <h1 className="mt-1 text-lg sm:text-xl font-bold text-white">
               {subject?.subject_name}
             </h1>
             {subject?.description && (
@@ -206,7 +201,7 @@ export function StudentSubjectPage() {
 
       {/* Stats row */}
       {!loading && (
-        <div className="mb-6 grid grid-cols-3 gap-4">
+        <div className="mb-5 sm:mb-6 grid grid-cols-3 gap-2 sm:gap-4">
           {[
             {
               label: "Materials",
@@ -229,16 +224,18 @@ export function StudentSubjectPage() {
           ].map((s) => (
             <div
               key={s.label}
-              className={`rounded-2xl border border-amber-500/15 ${s.bg} p-4 backdrop-blur-sm`}
+              className={`rounded-2xl border border-amber-500/15 ${s.bg} p-3 sm:p-4 backdrop-blur-sm`}
             >
-              <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
+              <p className={`text-xl sm:text-2xl font-bold ${s.color}`}>
+                {s.value}
+              </p>
               <p className="text-xs text-muted-foreground mt-0.5">{s.label}</p>
             </div>
           ))}
         </div>
       )}
 
-      <div className="grid gap-6 xl:grid-cols-2">
+      <div className="grid gap-5 sm:gap-6 xl:grid-cols-2">
         {/* Materials */}
         <Card>
           <div className="h-1 bg-linear-to-r from-emerald-500 to-sky-500" />

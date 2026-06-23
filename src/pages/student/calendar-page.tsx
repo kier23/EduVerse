@@ -1,6 +1,4 @@
 // pages/student/calendar-page.tsx
-// Student calendar — monthly view with event creation and deletion.
-
 import { useEffect, useState } from "react";
 import {
   ChevronLeft,
@@ -32,9 +30,8 @@ import {
 import { useAuth } from "@/providers/auth-provider";
 import { cn } from "@/lib/utils";
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const DAYS_SHORT = ["S", "M", "T", "W", "T", "F", "S"];
 const MONTHS = [
   "January",
   "February",
@@ -83,8 +80,6 @@ function isSameDay(a: Date, b: Date) {
   );
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
-
 export function StudentCalendarPage() {
   const { user } = useAuth();
 
@@ -94,11 +89,11 @@ export function StudentCalendarPage() {
   );
   const [events, setEvents] = useState<EventItem[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // Selected day
   const [selectedDay, setSelectedDay] = useState<Date | null>(today);
 
-  // Create dialog
+  // On mobile we show a bottom sheet for the day panel
+  const [dayPanelOpen, setDayPanelOpen] = useState(false);
+
   const [createOpen, setCreateOpen] = useState(false);
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState("");
@@ -110,7 +105,6 @@ export function StudentCalendarPage() {
     event_type: "personal",
   });
 
-  // Delete confirm
   const [deleteTarget, setDeleteTarget] = useState<EventItem | null>(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -120,8 +114,6 @@ export function StudentCalendarPage() {
       .then(setEvents)
       .finally(() => setLoading(false));
   }, [user]);
-
-  // ── Calendar grid ─────────────────────────────────────────────────────────
 
   const year = viewDate.getFullYear();
   const month = viewDate.getMonth();
@@ -135,7 +127,6 @@ export function StudentCalendarPage() {
       (_, i) => new Date(year, month, i + 1),
     ),
   ];
-  // Pad to full weeks
   while (cells.length % 7 !== 0) cells.push(null);
 
   const prevMonth = () => setViewDate(new Date(year, month - 1, 1));
@@ -148,8 +139,6 @@ export function StudentCalendarPage() {
     });
 
   const selectedEvents = selectedDay ? eventsOnDay(selectedDay) : [];
-
-  // ── Create ────────────────────────────────────────────────────────────────
 
   const openCreate = (day?: Date) => {
     const dateStr = day
@@ -192,8 +181,6 @@ export function StudentCalendarPage() {
     }
   };
 
-  // ── Delete ────────────────────────────────────────────────────────────────
-
   const handleDelete = async () => {
     if (!deleteTarget) return;
     setDeleting(true);
@@ -208,6 +195,11 @@ export function StudentCalendarPage() {
     }
   };
 
+  const handleDayClick = (day: Date) => {
+    setSelectedDay(day);
+    setDayPanelOpen(true);
+  };
+
   return (
     <AppShell title="My Calendar">
       <div className="flex flex-col gap-5 xl:flex-row">
@@ -215,7 +207,7 @@ export function StudentCalendarPage() {
         <div className="flex-1 min-w-0">
           <div className="rounded-2xl border border-amber-500/15 bg-stone-950/75 shadow-lg backdrop-blur-md overflow-hidden">
             {/* Month header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
               <button
                 type="button"
                 onClick={prevMonth}
@@ -223,11 +215,9 @@ export function StudentCalendarPage() {
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
-              <div className="text-center">
-                <p className="text-sm font-semibold text-white">
-                  {MONTHS[month]} {year}
-                </p>
-              </div>
+              <p className="text-sm font-semibold text-white">
+                {MONTHS[month]} {year}
+              </p>
               <button
                 type="button"
                 onClick={nextMonth}
@@ -237,14 +227,15 @@ export function StudentCalendarPage() {
               </button>
             </div>
 
-            {/* Day names */}
+            {/* Day names — short on mobile */}
             <div className="grid grid-cols-7 border-b border-slate-100">
-              {DAYS.map((d) => (
+              {DAYS.map((d, i) => (
                 <div
                   key={d}
                   className="py-2 text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground"
                 >
-                  {d}
+                  <span className="hidden sm:inline">{d}</span>
+                  <span className="sm:hidden">{DAYS_SHORT[i]}</span>
                 </div>
               ))}
             </div>
@@ -261,7 +252,7 @@ export function StudentCalendarPage() {
                     return (
                       <div
                         key={idx}
-                        className="min-h-16 border-b border-r border-slate-50"
+                        className="min-h-12 sm:min-h-16 border-b border-r border-slate-50"
                       />
                     );
 
@@ -276,16 +267,18 @@ export function StudentCalendarPage() {
                     <button
                       key={idx}
                       type="button"
-                      onClick={() => setSelectedDay(day)}
+                      onClick={() => handleDayClick(day)}
                       className={cn(
-                        "group min-h-16 flex flex-col p-1.5 border-b border-r border-slate-50 text-left transition-all",
-                        isSelected ? "bg-amber-400/10" : "hover:bg-slate-950/70",
+                        "group min-h-12 sm:min-h-16 flex flex-col p-1 sm:p-1.5 border-b border-r border-slate-50 text-left transition-all",
+                        isSelected
+                          ? "bg-amber-400/10"
+                          : "hover:bg-slate-950/70",
                         isOtherMonth && "opacity-30",
                       )}
                     >
                       <span
                         className={cn(
-                          "mb-1 flex h-6 w-6 items-center justify-center self-end rounded-full text-xs font-medium transition-all",
+                          "mb-1 flex h-5 w-5 sm:h-6 sm:w-6 items-center justify-center self-end rounded-full text-[10px] sm:text-xs font-medium transition-all",
                           isToday
                             ? "bg-amber-400/100 text-white"
                             : isSelected
@@ -295,27 +288,44 @@ export function StudentCalendarPage() {
                       >
                         {day.getDate()}
                       </span>
+                      {/* Event dots on mobile, pill labels on desktop */}
                       <div className="flex flex-col gap-0.5 min-w-0">
-                        {dayEvents.slice(0, 2).map((e) => {
-                          const c = colorFor(e.event_type);
-                          return (
-                            <span
-                              key={e.id}
-                              className={cn(
-                                "truncate rounded px-1 text-[10px] font-medium leading-4",
-                                c.bg,
-                                c.text,
-                              )}
-                            >
-                              {e.title}
+                        <div className="flex flex-wrap gap-0.5 sm:hidden">
+                          {dayEvents.slice(0, 3).map((e) => {
+                            const c = colorFor(e.event_type);
+                            return (
+                              <span
+                                key={e.id}
+                                className={cn(
+                                  "h-1.5 w-1.5 rounded-full",
+                                  c.dot,
+                                )}
+                              />
+                            );
+                          })}
+                        </div>
+                        <div className="hidden sm:flex sm:flex-col sm:gap-0.5">
+                          {dayEvents.slice(0, 2).map((e) => {
+                            const c = colorFor(e.event_type);
+                            return (
+                              <span
+                                key={e.id}
+                                className={cn(
+                                  "truncate rounded px-1 text-[10px] font-medium leading-4",
+                                  c.bg,
+                                  c.text,
+                                )}
+                              >
+                                {e.title}
+                              </span>
+                            );
+                          })}
+                          {dayEvents.length > 2 && (
+                            <span className="text-[10px] text-muted-foreground pl-1">
+                              +{dayEvents.length - 2} more
                             </span>
-                          );
-                        })}
-                        {dayEvents.length > 2 && (
-                          <span className="text-[10px] text-muted-foreground pl-1">
-                            +{dayEvents.length - 2} more
-                          </span>
-                        )}
+                          )}
+                        </div>
                       </div>
                     </button>
                   );
@@ -338,10 +348,9 @@ export function StudentCalendarPage() {
           </div>
         </div>
 
-        {/* ── Day detail panel ─────────────────────────────────────────────── */}
-        <div className="w-full xl:w-72 shrink-0">
+        {/* ── Desktop day detail panel ─────────────────────────────────────── */}
+        <div className="hidden xl:block w-72 shrink-0">
           <div className="rounded-2xl border border-amber-500/15 bg-stone-950/75 shadow-lg backdrop-blur-md overflow-hidden sticky top-4">
-            {/* Day header */}
             <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
               <div>
                 <p className="text-sm font-semibold text-white">
@@ -369,8 +378,6 @@ export function StudentCalendarPage() {
                 </button>
               )}
             </div>
-
-            {/* Events list */}
             <div className="p-3 space-y-2 min-h-24">
               {!selectedDay ? (
                 <p className="text-xs text-muted-foreground text-center py-6">
@@ -438,6 +445,96 @@ export function StudentCalendarPage() {
         </div>
       </div>
 
+      {/* ── Mobile day detail bottom sheet ──────────────────────────────────── */}
+      <Dialog open={dayPanelOpen} onOpenChange={setDayPanelOpen}>
+        <DialogContent className="sm:max-w-md overflow-hidden p-0 fixed bottom-0 left-0 right-0 top-auto translate-x-0 translate-y-0 max-w-full rounded-t-2xl rounded-b-none xl:hidden data-open:slide-in-from-bottom data-closed:slide-out-to-bottom">
+          <div className="h-1 bg-linear-to-r from-amber-500 via-orange-500 to-yellow-500" />
+          <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold text-white">
+                {selectedDay
+                  ? selectedDay.toLocaleDateString("en-US", {
+                      weekday: "long",
+                      month: "long",
+                      day: "numeric",
+                    })
+                  : "Select a day"}
+              </p>
+              {selectedDay && isSameDay(selectedDay, today) && (
+                <p className="text-[10px] text-amber-500 font-medium">Today</p>
+              )}
+            </div>
+            {selectedDay && (
+              <button
+                type="button"
+                onClick={() => {
+                  setDayPanelOpen(false);
+                  openCreate(selectedDay);
+                }}
+                className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-400 text-white hover:bg-amber-500 transition-colors"
+              >
+                <Plus className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+          <div className="p-3 space-y-2 max-h-72 overflow-y-auto">
+            {selectedEvents.length === 0 ? (
+              <div className="flex flex-col items-center gap-2 py-8 text-center">
+                <CalendarDays className="h-7 w-7 text-slate-200" />
+                <p className="text-xs text-muted-foreground">
+                  No events this day
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDayPanelOpen(false);
+                    openCreate(selectedDay ?? undefined);
+                  }}
+                  className="text-xs text-amber-500 hover:underline"
+                >
+                  Add one
+                </button>
+              </div>
+            ) : (
+              selectedEvents.map((e) => {
+                const c = colorFor(e.event_type);
+                return (
+                  <div key={e.id} className={cn("rounded-xl p-3", c.bg)}>
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p
+                          className={cn(
+                            "text-xs font-semibold truncate",
+                            c.text,
+                          )}
+                        >
+                          {e.title}
+                        </p>
+                        {e.description && (
+                          <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-2">
+                            {e.description}
+                          </p>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setDayPanelOpen(false);
+                          setDeleteTarget(e);
+                        }}
+                        className="shrink-0 text-slate-400 hover:text-red-500 transition-all"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* ── Create event dialog ──────────────────────────────────────────────── */}
       <Dialog
         open={createOpen}
@@ -445,17 +542,17 @@ export function StudentCalendarPage() {
           if (!o) setCreateOpen(false);
         }}
       >
-        <DialogContent className="sm:max-w-md overflow-hidden p-0">
+        <DialogContent className="sm:max-w-md overflow-hidden p-0 w-[calc(100%-2rem)]">
           <div className="h-1 bg-linear-to-r from-amber-500 via-orange-500 to-yellow-500" />
-          <div className="p-6">
-            <DialogHeader className="mb-5">
+          <div className="p-4 sm:p-6">
+            <DialogHeader className="mb-4 sm:mb-5">
               <DialogTitle>Add Event</DialogTitle>
               <DialogDescription>
                 Create a personal event on your calendar.
               </DialogDescription>
             </DialogHeader>
 
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               <div className="space-y-1.5">
                 <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                   Title <span className="text-red-400">*</span>
@@ -546,7 +643,7 @@ export function StudentCalendarPage() {
             </div>
           </div>
 
-          <DialogFooter className="px-6 pb-6 pt-0">
+          <DialogFooter className="px-4 sm:px-6 pb-4 sm:pb-6 pt-0">
             <Button
               variant="outline"
               size="sm"
@@ -581,9 +678,9 @@ export function StudentCalendarPage() {
           if (!o) setDeleteTarget(null);
         }}
       >
-        <DialogContent className="sm:max-w-sm overflow-hidden p-0">
+        <DialogContent className="sm:max-w-sm overflow-hidden p-0 w-[calc(100%-2rem)]">
           <div className="h-1 bg-linear-to-r from-rose-500 to-red-500" />
-          <div className="p-6">
+          <div className="p-5 sm:p-6">
             <DialogHeader className="mb-4">
               <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-red-50">
                 <AlertCircle className="h-5 w-5 text-red-500" />
@@ -595,7 +692,7 @@ export function StudentCalendarPage() {
               </DialogDescription>
             </DialogHeader>
           </div>
-          <DialogFooter className="px-6 pb-6 pt-0">
+          <DialogFooter className="px-5 sm:px-6 pb-5 sm:pb-6 pt-0">
             <Button
               variant="outline"
               size="sm"

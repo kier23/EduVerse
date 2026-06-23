@@ -56,7 +56,9 @@ export function SignupPage() {
         return;
       }
 
-      setSuccess("Account created. Check your email to confirm, then log in.");
+      setSuccess(
+        "Account created. Check your email to confirm, then log in. check your spam folder if you don't see it.",
+      );
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Signup failed.");
     } finally {
