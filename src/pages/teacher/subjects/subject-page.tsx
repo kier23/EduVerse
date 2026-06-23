@@ -289,7 +289,7 @@ function SubjectListView() {
           <Button
             size="sm"
             onClick={openCreate}
-            className="bg-amber-400/100 hover:bg-amber-600 text-white gap-1.5"
+            className="bg-amber-400 hover:bg-amber-600 text-white gap-1.5"
           >
             <Plus className="h-4 w-4" />
             New Subject
@@ -317,7 +317,7 @@ function SubjectListView() {
           <Button
             size="sm"
             onClick={openCreate}
-            className="bg-amber-400/100 hover:bg-amber-600 text-white gap-1.5 mt-2"
+            className="bg-amber-400 hover:bg-amber-600 text-white gap-1.5 mt-2"
           >
             <Plus className="h-4 w-4" />
             Create Subject
@@ -454,7 +454,7 @@ function SubjectListView() {
                 !form.subject_name.trim() ||
                 !form.subject_code.trim()
               }
-              className="bg-amber-400/100 hover:bg-amber-600 text-white min-w-28"
+              className="bg-amber-400 hover:bg-amber-600 text-white min-w-28"
             >
               {creating ? (
                 <>

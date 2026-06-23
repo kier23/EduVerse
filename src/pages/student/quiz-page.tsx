@@ -14,6 +14,8 @@ import {
   Music,
   RotateCcw,
   Send,
+  ClipboardCheck,
+  AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -41,6 +43,30 @@ type EnrichedQuestion = QuizQuestion & {
 
 type Answer = string | string[] | Record<string, string>;
 
+// Question types that require teacher review — cannot be auto-graded
+const MANUAL_GRADE_TYPES = new Set(["essay", "file_upload", "audio_response"]);
+
+// Returns true if this question type is always manually graded
+function isManualGrade(type: string | null | undefined): boolean {
+  return MANUAL_GRADE_TYPES.has(type ?? "");
+}
+
+// Returns true if the answer for a given question is considered blank/empty
+function isAnswerBlank(
+  answer: Answer | undefined,
+  type: string | null | undefined,
+): boolean {
+  if (answer === undefined || answer === null) return true;
+  if (typeof answer === "string") return answer.trim() === "";
+  if (Array.isArray(answer))
+    return answer.length === 0 || answer.every((a) => a.trim() === "");
+  if (typeof answer === "object") {
+    const vals = Object.values(answer);
+    return vals.length === 0 || vals.every((v) => !v || v.trim() === "");
+  }
+  return true;
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function answerToText(answer: Answer | undefined): string {
@@ -51,6 +77,110 @@ function answerToText(answer: Answer | undefined): string {
       .map(([k, v]) => `${k} → ${v}`)
       .join("; ");
   return String(answer);
+}
+
+// ─── Repeat Attempt Dialog ────────────────────────────────────────────────────
+
+function RepeatAttemptDialog({
+  color,
+  attemptCount,
+  onConfirm,
+  onCancel,
+}: {
+  color: string;
+  attemptCount: number;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-stone-950/80 backdrop-blur-sm"
+        onClick={onCancel}
+      />
+      {/* Card */}
+      <div
+        className="relative w-full max-w-sm rounded-2xl border bg-stone-950/95 p-6 shadow-2xl"
+        style={{ borderColor: color + "30" }}
+      >
+        <div
+          className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full"
+          style={{ background: color + "15" }}
+        >
+          <AlertTriangle className="h-6 w-6" style={{ color }} />
+        </div>
+        <h2 className="text-center text-base font-semibold text-white mb-2">
+          Already Submitted
+        </h2>
+        <p className="text-center text-sm text-muted-foreground mb-6">
+          You have already submitted{" "}
+          <span className="font-medium text-stone-200">
+            {attemptCount} response{attemptCount !== 1 ? "s" : ""}
+          </span>{" "}
+          for this quiz. Starting again will submit a new attempt.
+        </p>
+        <div className="flex gap-3">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="flex-1 rounded-xl border border-amber-500/20 bg-stone-900/60 py-2.5 text-sm font-medium text-stone-300 transition hover:bg-stone-800"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            className="flex-1 rounded-xl py-2.5 text-sm font-semibold text-white transition hover:opacity-90"
+            style={{ background: color }}
+          >
+            Start New Attempt
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Blank Answer Warning Banner ──────────────────────────────────────────────
+
+function BlankAnswerBanner({
+  blankIndices,
+  color,
+  onGoTo,
+}: {
+  blankIndices: number[];
+  color: string;
+  onGoTo: (i: number) => void;
+}) {
+  if (blankIndices.length === 0) return null;
+  return (
+    <div
+      className="flex items-start gap-3 rounded-xl border px-4 py-3 text-sm"
+      style={{ background: "#7f1d1d33", borderColor: "#ef444433" }}
+    >
+      <AlertCircle className="h-4 w-4 text-red-400 shrink-0 mt-0.5" />
+      <div className="flex-1 min-w-0">
+        <p className="font-medium text-red-300">
+          {blankIndices.length === 1
+            ? "1 question has no answer."
+            : `${blankIndices.length} questions have no answers.`}
+        </p>
+        <div className="flex flex-wrap gap-1.5 mt-1.5">
+          {blankIndices.map((i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => onGoTo(i)}
+              className="rounded-full bg-red-500/20 px-2 py-0.5 text-xs font-medium text-red-300 hover:bg-red-500/30 transition"
+            >
+              Q{i + 1}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -76,6 +206,14 @@ export function StudentQuizPage() {
   const [answers, setAnswers] = useState<Record<string, Answer>>({});
   const [submitting, setSubmitting] = useState(false);
   const [score, setScore] = useState<number | null>(null);
+  const [hasManualQuestions, setHasManualQuestions] = useState(false);
+
+  // Repeat-attempt confirmation
+  const [priorAttemptCount, setPriorAttemptCount] = useState(0);
+  const [showRepeatDialog, setShowRepeatDialog] = useState(false);
+
+  // Blank-answer validation
+  const [blankWarning, setBlankWarning] = useState<number[]>([]);
 
   // Timer
   const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
@@ -91,6 +229,11 @@ export function StudentQuizPage() {
         setQuiz(q);
         setQuestions(qs as EnrichedQuestion[]);
         setSettings(s);
+        setHasManualQuestions(
+          (qs as EnrichedQuestion[]).some((q) =>
+            isManualGrade(q.question_type),
+          ),
+        );
 
         // Fetch activity title + subjectId for back navigation
         if (q.activity_id) {
@@ -143,24 +286,40 @@ export function StudentQuizPage() {
   const handleStart = async () => {
     if (!quizId || !user) return;
 
-    // Check attempt limit before starting
-    if (quiz?.attempts_allowed) {
-      const { count } = await supabase
-        .from("quiz_attempts")
-        .select("*", { count: "exact", head: true })
-        .eq("quiz_id", quizId)
-        .eq("student_id", user.id);
+    // Check prior attempts
+    const { count } = await supabase
+      .from("quiz_attempts")
+      .select("*", { count: "exact", head: true })
+      .eq("quiz_id", quizId)
+      .eq("student_id", user.id);
 
-      if (count !== null && count >= quiz.attempts_allowed) {
-        setError(
-          "You have reached the maximum number of attempts for this quiz.",
-        );
-        return;
-      }
+    const prior = count ?? 0;
+
+    // Hard limit check
+    if (quiz?.attempts_allowed && prior >= quiz.attempts_allowed) {
+      setError(
+        "You have reached the maximum number of attempts for this quiz.",
+      );
+      return;
     }
 
+    // Soft repeat warning: already has at least one attempt
+    if (prior > 0) {
+      setPriorAttemptCount(prior);
+      setShowRepeatDialog(true);
+      return;
+    }
+
+    doStart();
+  };
+
+  const doStart = () => {
+    setShowRepeatDialog(false);
     startedAt.current = new Date().toISOString();
     setPhase("quiz");
+    setCurrentIndex(0);
+    setAnswers({});
+    setBlankWarning([]);
     if (quiz?.time_limit) startTimer(quiz.time_limit);
   };
 
@@ -168,6 +327,21 @@ export function StudentQuizPage() {
 
   const handleSubmit = async () => {
     if (!quizId || !user || submitting) return;
+
+    // Blank-answer validation
+    const blanks = questions
+      .map((q, i) => ({ q, i }))
+      .filter(({ q }) => isAnswerBlank(answers[q.id], q.question_type))
+      .map(({ i }) => i);
+
+    if (blanks.length > 0) {
+      setBlankWarning(blanks);
+      // Scroll to first unanswered
+      setCurrentIndex(blanks[0]);
+      return;
+    }
+
+    setBlankWarning([]);
     setSubmitting(true);
     if (timerRef.current) clearInterval(timerRef.current);
 
@@ -199,9 +373,11 @@ export function StudentQuizPage() {
         await supabase.from("quiz_answers").insert(answerRows);
       }
 
-      // Auto-grade: multiple_choice, true_false, fill_blank
+      // Auto-grade: multiple_choice, image_choice, multiple_select, true_false, short_answer
+      // Manual types (essay, file_upload, audio_response) are skipped — graded by teacher
       let totalScore = 0;
       for (const q of questions) {
+        if (isManualGrade(q.question_type)) continue;
         const ans = answers[q.id];
         const pts = q.points ?? 0;
         const content = (q.question_content ?? {}) as Record<string, unknown>;
@@ -246,17 +422,26 @@ export function StudentQuizPage() {
     }
   };
 
-  const color = settings.primaryColor ?? "#6366f1";
+  const color = settings.primaryColor ?? "#f59e0b";
   const current = questions[currentIndex];
   const total = questions.length;
   const progress = total > 0 ? ((currentIndex + 1) / total) * 100 : 0;
+
+  // Points that can be auto-graded vs manual
+  const autoGradablePts = questions
+    .filter((q) => !isManualGrade(q.question_type))
+    .reduce((s, q) => s + (q.points ?? 0), 0);
+  const manualPts = questions
+    .filter((q) => isManualGrade(q.question_type))
+    .reduce((s, q) => s + (q.points ?? 0), 0);
+  const totalPts = autoGradablePts + manualPts;
 
   // ── Loading / Error ───────────────────────────────────────────────────────
 
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-indigo-400" />
+        <Loader2 className="h-6 w-6 animate-spin text-amber-400" />
       </div>
     );
   }
@@ -285,8 +470,18 @@ export function StudentQuizPage() {
     return (
       <div
         className="flex min-h-screen flex-col"
-        style={{ background: "#f8fafc" }}
+        style={{ background: "#1a1008" }}
       >
+        {/* Repeat-attempt confirmation dialog */}
+        {showRepeatDialog && (
+          <RepeatAttemptDialog
+            color={color}
+            attemptCount={priorAttemptCount}
+            onConfirm={doStart}
+            onCancel={() => setShowRepeatDialog(false)}
+          />
+        )}
+
         {/* Header bar */}
         <div className="flex items-center gap-3 px-6 py-3 border-b border-amber-500/15 bg-stone-950/75 backdrop-blur-sm">
           <button
@@ -326,7 +521,7 @@ export function StudentQuizPage() {
 
             {/* Card */}
             <div
-              className="rounded-2xl border bg-white p-8 shadow-sm"
+              className="rounded-2xl border bg-stone-950/80 p-8 shadow-sm backdrop-blur-sm"
               style={{ borderColor: color + "30" }}
             >
               <div
@@ -345,21 +540,27 @@ export function StudentQuizPage() {
 
               {/* Meta */}
               <div className="flex flex-wrap gap-3 mb-8">
-                <span className="flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-300">
+                <span className="flex items-center gap-1.5 rounded-full bg-stone-800/80 px-3 py-1.5 text-xs font-medium text-stone-300">
                   <FileText className="h-3.5 w-3.5" />
                   {total} question{total !== 1 ? "s" : ""}
                 </span>
                 {quiz.time_limit && (
-                  <span className="flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-700">
+                  <span className="flex items-center gap-1.5 rounded-full bg-amber-400/15 px-3 py-1.5 text-xs font-medium text-amber-400">
                     <Clock className="h-3.5 w-3.5" />
                     {quiz.time_limit} min time limit
                   </span>
                 )}
                 {quiz.attempts_allowed && (
-                  <span className="flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-300">
+                  <span className="flex items-center gap-1.5 rounded-full bg-stone-800/80 px-3 py-1.5 text-xs font-medium text-stone-300">
                     <RotateCcw className="h-3.5 w-3.5" />
                     {quiz.attempts_allowed} attempt
                     {quiz.attempts_allowed !== 1 ? "s" : ""} allowed
+                  </span>
+                )}
+                {hasManualQuestions && (
+                  <span className="flex items-center gap-1.5 rounded-full bg-violet-400/10 px-3 py-1.5 text-xs font-medium text-violet-400">
+                    <ClipboardCheck className="h-3.5 w-3.5" />
+                    Some questions manually graded
                   </span>
                 )}
               </div>
@@ -382,71 +583,134 @@ export function StudentQuizPage() {
   // ── Submitted screen ──────────────────────────────────────────────────────
 
   if (phase === "submitted") {
-    const totalPts = questions.reduce((s, q) => s + (q.points ?? 0), 0);
-    const pct = totalPts > 0 ? Math.round(((score ?? 0) / totalPts) * 100) : 0;
+    const pct =
+      autoGradablePts > 0
+        ? Math.round(((score ?? 0) / autoGradablePts) * 100)
+        : 0;
+    const allManual = questions.every((q) => isManualGrade(q.question_type));
 
     return (
       <div
         className="flex min-h-screen flex-col items-center justify-center p-6"
-        style={{ background: "#f8fafc" }}
+        style={{ background: "#1a1008" }}
       >
         <div className="w-full max-w-lg space-y-5">
           <div
-            className="rounded-2xl border bg-white p-8 shadow-sm text-center"
+            className="rounded-2xl border bg-stone-950/80 p-8 shadow-sm text-center backdrop-blur-sm"
             style={{ borderColor: color + "30" }}
           >
+            {/* Icon */}
             <div
               className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full"
               style={{ background: color + "15" }}
             >
               <CheckCircle2 className="h-8 w-8" style={{ color }} />
             </div>
-            <h1 className="text-2xl font-bold text-white mb-1">
-              Submitted!
-            </h1>
+
+            <h1 className="text-2xl font-bold text-white mb-1">Submitted!</h1>
             <p className="text-sm text-muted-foreground mb-6">
               Your answers have been recorded.
             </p>
 
-            {/* Score ring */}
-            <div
-              className="mx-auto mb-6 flex h-28 w-28 flex-col items-center justify-center rounded-full border-4"
-              style={{ borderColor: color }}
-            >
-              <p className="text-2xl font-bold" style={{ color }}>
-                {score ?? 0}
-              </p>
-              <p className="text-xs text-muted-foreground">/ {totalPts} pts</p>
-            </div>
-
-            <div className="flex gap-3 flex-wrap justify-center mb-2">
-              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-300">
-                {pct}% score
-              </span>
-              <span
-                className="rounded-full px-3 py-1 text-xs font-medium text-white"
-                style={{ background: color }}
+            {/* Score area */}
+            {allManual ? (
+              /* All questions are manual — no score shown */
+              <div
+                className="mx-auto mb-6 flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed py-6 px-4"
+                style={{ borderColor: color + "40" }}
               >
-                {pct >= 75
-                  ? "Passed ✓"
-                  : pct >= 50
-                    ? "Fair"
-                    : "Needs improvement"}
-              </span>
-            </div>
+                <ClipboardCheck className="h-8 w-8" style={{ color }} />
+                <p className="text-sm font-semibold text-white">
+                  Awaiting Teacher Review
+                </p>
+                <p className="text-xs text-muted-foreground max-w-xs">
+                  All questions in this quiz require manual grading. Your
+                  teacher will review and score your responses.
+                </p>
+              </div>
+            ) : hasManualQuestions ? (
+              /* Mixed: some auto-graded, some manual */
+              <div className="space-y-4 mb-6">
+                {/* Auto-graded portion */}
+                <div
+                  className="mx-auto flex h-28 w-28 flex-col items-center justify-center rounded-full border-4"
+                  style={{ borderColor: color }}
+                >
+                  <p className="text-2xl font-bold" style={{ color }}>
+                    {score ?? 0}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    / {autoGradablePts} pts
+                  </p>
+                </div>
+                {/* Manual pending notice */}
+                <div
+                  className="flex items-center gap-2.5 rounded-xl border px-4 py-3 text-sm"
+                  style={{
+                    background: color + "10",
+                    borderColor: color + "30",
+                  }}
+                >
+                  <ClipboardCheck
+                    className="h-4 w-4 shrink-0"
+                    style={{ color }}
+                  />
+                  <div className="text-left">
+                    <p className="font-medium" style={{ color }}>
+                      +{manualPts} pts pending teacher review
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Essay / open-ended answers will be graded manually.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              /* Fully auto-graded */
+              <div
+                className="mx-auto mb-6 flex h-28 w-28 flex-col items-center justify-center rounded-full border-4"
+                style={{ borderColor: color }}
+              >
+                <p className="text-2xl font-bold" style={{ color }}>
+                  {score ?? 0}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  / {totalPts} pts
+                </p>
+              </div>
+            )}
+
+            {/* Score badges — only for non-all-manual */}
+            {!allManual && (
+              <div className="flex gap-3 flex-wrap justify-center mb-2">
+                <span className="rounded-full bg-stone-800/80 px-3 py-1 text-xs font-medium text-stone-300">
+                  {pct}% auto-graded
+                </span>
+                <span
+                  className="rounded-full px-3 py-1 text-xs font-medium text-white"
+                  style={{ background: color }}
+                >
+                  {pct >= 75
+                    ? "Passed ✓"
+                    : pct >= 50
+                      ? "Fair"
+                      : "Needs improvement"}
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Answer summary */}
           <div
-            className="rounded-2xl border bg-white shadow-sm overflow-hidden"
+            className="rounded-2xl border bg-stone-950/80 shadow-sm overflow-hidden backdrop-blur-sm"
             style={{ borderColor: color + "20" }}
           >
-            <div className="border-b border-slate-100 px-5 py-3">
+            <div className="border-b border-amber-500/15 px-5 py-3">
               <p className="text-sm font-semibold text-amber-50">
                 Your Answers
               </p>
             </div>
-            <div className="divide-y divide-slate-100">
+            <div className="divide-y divide-amber-500/10">
               {questions.map((q, i) => (
                 <div key={q.id} className="px-5 py-3 flex gap-3">
                   <span
@@ -455,10 +719,17 @@ export function StudentQuizPage() {
                   >
                     {i + 1}
                   </span>
-                  <div className="min-w-0">
-                    <p className="text-xs font-medium text-slate-200 line-clamp-1">
-                      {q.question}
-                    </p>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="text-xs font-medium text-slate-200 line-clamp-1">
+                        {q.question}
+                      </p>
+                      {isManualGrade(q.question_type) && (
+                        <span className="shrink-0 rounded-full bg-violet-400/10 px-2 py-0.5 text-[10px] font-medium text-violet-400">
+                          To grade
+                        </span>
+                      )}
+                    </div>
                     <p className="text-xs text-muted-foreground mt-0.5">
                       {answerToText(answers[q.id]) || (
                         <span className="italic">No answer</span>
@@ -494,7 +765,7 @@ export function StudentQuizPage() {
   return (
     <div
       className="flex min-h-screen flex-col"
-      style={{ background: "#f8fafc" }}
+      style={{ background: "#1a1008" }}
     >
       {/* Top bar */}
       <div
@@ -524,7 +795,7 @@ export function StudentQuizPage() {
 
       {/* Progress bar */}
       {settings.showProgress !== false && (
-        <div className="h-1 bg-slate-200">
+        <div className="h-1 bg-stone-800">
           <div
             className="h-full transition-all duration-500"
             style={{ width: `${progress}%`, background: color }}
@@ -535,15 +806,30 @@ export function StudentQuizPage() {
       {/* Question */}
       <div className="flex flex-1 justify-center px-4 py-8 overflow-y-auto">
         <div className="w-full max-w-2xl space-y-5">
+          {/* Blank answer warning */}
+          <BlankAnswerBanner
+            blankIndices={blankWarning}
+            color={color}
+            onGoTo={(i) => {
+              setCurrentIndex(i);
+              setBlankWarning([]);
+            }}
+          />
+
           {current && (
             <QuestionRenderer
               question={current}
               index={currentIndex}
               color={color}
               answer={answers[current.id]}
-              onAnswer={(v) =>
-                setAnswers((prev) => ({ ...prev, [current.id]: v }))
-              }
+              isBlank={blankWarning.includes(currentIndex)}
+              onAnswer={(v) => {
+                setAnswers((prev) => ({ ...prev, [current.id]: v }));
+                // Clear this question from blank warning once answered
+                setBlankWarning((prev) =>
+                  prev.filter((i) => i !== currentIndex),
+                );
+              }}
               showCard={settings.questionCard !== false}
             />
           )}
@@ -554,7 +840,7 @@ export function StudentQuizPage() {
               type="button"
               onClick={() => setCurrentIndex((i) => Math.max(0, i - 1))}
               disabled={currentIndex === 0}
-              className="rounded-xl border border-amber-500/15 bg-white px-4 py-2 text-sm font-medium text-slate-300 transition hover:bg-slate-950/70 disabled:opacity-30 disabled:cursor-not-allowed"
+              className="rounded-xl border border-amber-500/15 bg-stone-900/60 px-4 py-2 text-sm font-medium text-stone-300 transition hover:bg-stone-800/80 disabled:opacity-30 disabled:cursor-not-allowed"
             >
               ← Back
             </button>
@@ -596,14 +882,19 @@ export function StudentQuizPage() {
                 key={q.id}
                 type="button"
                 onClick={() => setCurrentIndex(i)}
+                title={`Question ${i + 1}${blankWarning.includes(i) ? " — no answer" : ""}`}
                 className={cn(
-                  "h-2 w-2 rounded-full transition-all",
-                  i === currentIndex ? "w-5" : "",
+                  "h-2 rounded-full transition-all",
+                  i === currentIndex ? "w-5" : "w-2",
                   answers[q.id] ? "opacity-100" : "opacity-30",
+                  blankWarning.includes(i) && "ring-1 ring-red-400 opacity-100",
                 )}
                 style={{
-                  background:
-                    i === currentIndex || answers[q.id] ? color : "#94a3b8",
+                  background: blankWarning.includes(i)
+                    ? "#ef4444"
+                    : i === currentIndex || answers[q.id]
+                      ? color
+                      : "#94a3b8",
                 }}
               />
             ))}
@@ -621,6 +912,7 @@ function QuestionRenderer({
   index,
   color,
   answer,
+  isBlank,
   onAnswer,
   showCard,
 }: {
@@ -628,23 +920,33 @@ function QuestionRenderer({
   index: number;
   color: string;
   answer: Answer | undefined;
+  isBlank: boolean;
   onAnswer: (v: Answer) => void;
   showCard: boolean;
 }) {
   const content = (question.question_content ?? {}) as Record<string, unknown>;
   const type = question.question_type ?? "short_answer";
+  const manual = isManualGrade(type);
 
   const wrap = (children: React.ReactNode) => (
     <div
       className={cn(
         "space-y-5",
-        showCard && "rounded-2xl border bg-white p-6 shadow-sm",
+        showCard &&
+          "rounded-2xl border bg-stone-950/80 p-6 shadow-sm backdrop-blur-sm",
+        isBlank && showCard && "ring-1 ring-red-400/60",
       )}
-      style={showCard ? { borderColor: color + "25" } : {}}
+      style={
+        showCard
+          ? {
+              borderColor: isBlank ? "#ef444440" : color + "25",
+            }
+          : {}
+      }
     >
       {/* Question header */}
       <div className="space-y-2">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <span
             className="text-[10px] font-semibold uppercase tracking-wider"
             style={{ color }}
@@ -654,6 +956,16 @@ function QuestionRenderer({
           <span className="text-[10px] text-muted-foreground">
             · {question.points ?? 1} pt{(question.points ?? 1) !== 1 ? "s" : ""}
           </span>
+          {manual && (
+            <span className="rounded-full bg-violet-400/10 px-2 py-0.5 text-[10px] font-medium text-violet-400">
+              Manually graded
+            </span>
+          )}
+          {isBlank && (
+            <span className="rounded-full bg-red-400/10 px-2 py-0.5 text-[10px] font-medium text-red-400">
+              Answer required
+            </span>
+          )}
         </div>
         <p className="text-base font-semibold text-white leading-snug">
           {question.question || (
@@ -684,9 +996,9 @@ function QuestionRenderer({
                 selected
                   ? { borderColor: color, background: color + "10", color }
                   : {
-                      borderColor: "#e2e8f0",
-                      background: "white",
-                      color: "#374151",
+                      borderColor: "#3c2910",
+                      background: "rgba(28,18,9,0.6)",
+                      color: "#d6d3d1",
                     }
               }
             >
@@ -695,7 +1007,7 @@ function QuestionRenderer({
                 style={
                   selected
                     ? { borderColor: color, background: color, color: "white" }
-                    : { borderColor: "#cbd5e1" }
+                    : { borderColor: "#57534e" }
                 }
               >
                 {selected ? "✓" : String.fromCharCode(65 + i)}
@@ -743,9 +1055,9 @@ function QuestionRenderer({
                 checked
                   ? { borderColor: color, background: color + "10", color }
                   : {
-                      borderColor: "#e2e8f0",
-                      background: "white",
-                      color: "#374151",
+                      borderColor: "#3c2910",
+                      background: "rgba(28,18,9,0.6)",
+                      color: "#d6d3d1",
                     }
               }
             >
@@ -754,7 +1066,7 @@ function QuestionRenderer({
                 style={
                   checked
                     ? { borderColor: color, background: color, color: "white" }
-                    : { borderColor: "#cbd5e1" }
+                    : { borderColor: "#57534e" }
                 }
               >
                 {checked ? "✓" : ""}
@@ -783,9 +1095,9 @@ function QuestionRenderer({
                 selected
                   ? { background: color, borderColor: color, color: "white" }
                   : {
-                      borderColor: "#e2e8f0",
-                      background: "white",
-                      color: "#64748b",
+                      borderColor: "#3c2910",
+                      background: "rgba(28,18,9,0.6)",
+                      color: "#a8a29e",
                     }
               }
             >
@@ -882,7 +1194,7 @@ function QuestionRenderer({
         {current.map((item, i) => (
           <div
             key={i}
-            className="flex items-center gap-3 rounded-xl border border-amber-500/15 bg-white px-4 py-3"
+            className="flex items-center gap-3 rounded-xl border border-amber-500/15 bg-stone-900/60 px-4 py-3"
           >
             <span
               className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
@@ -937,7 +1249,7 @@ function QuestionRenderer({
               onChange={(e) =>
                 onAnswer({ ...matchAnswer, [pair.left]: e.target.value })
               }
-              className="flex-1 rounded-xl border border-amber-500/15 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2"
+              className="flex-1 rounded-xl border border-amber-500/15 bg-stone-900/60 px-3 py-2 text-sm text-stone-200 focus:outline-none focus:ring-2"
               style={{ "--tw-ring-color": color + "50" } as React.CSSProperties}
             >
               <option value="">Select…</option>
@@ -1027,7 +1339,7 @@ function MediaBlock({ media }: { media: QuizQuestionMedia }) {
       <img
         src={url}
         alt=""
-        className="rounded-xl max-h-64 w-full object-cover border border-slate-100"
+        className="rounded-xl max-h-64 w-full object-cover border border-amber-500/15"
       />
     );
   if (type.startsWith("audio/"))

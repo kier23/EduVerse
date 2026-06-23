@@ -1,5 +1,7 @@
 // quizzes/components/media-uploader.tsx
 // Reusable media uploader for question attachments (image, audio, video, PDF).
+// Accent color follows the quiz's `color` prop (teacher's chosen primaryColor
+// from QuizSettingsPanel), falling back to amber if none is provided.
 
 import { useRef, useState } from "react";
 import {
@@ -13,6 +15,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { uploadQuizMedia, type QuizQuestionMedia } from "@/lib/api/eduverse";
+
+const DEFAULT_COLOR = "#f59e0b"; // amber-500 fallback
 
 type MediaType = "image" | "audio" | "video" | "pdf" | "any";
 
@@ -45,6 +49,7 @@ interface MediaUploaderProps {
   existingMedia?: QuizQuestionMedia[];
   accept?: MediaType;
   label?: string;
+  color?: string;
   onUploaded?: (media: QuizQuestionMedia) => void;
   onRemove?: (mediaId: string) => void;
 }
@@ -55,6 +60,7 @@ export function MediaUploader({
   existingMedia = [],
   accept = "any",
   label = "Attach media",
+  color = DEFAULT_COLOR,
   onUploaded,
   onRemove,
 }: MediaUploaderProps) {
@@ -90,6 +96,7 @@ export function MediaUploader({
             <MediaPreview
               key={m.id}
               media={m}
+              color={color}
               onRemove={() => onRemove?.(m.id)}
             />
           ))}
@@ -109,15 +116,19 @@ export function MediaUploader({
         disabled={uploading}
         className={cn(
           "flex w-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed py-6 text-sm transition-all",
-          dragOver
-            ? "border-amber-400/60 bg-amber-400/10"
-            : "border-amber-500/15 bg-card/70 hover:border-amber-300/30 hover:bg-amber-400/10",
+          !dragOver &&
+            "border-amber-500/15 bg-card/70 hover:border-amber-300/30 hover:bg-amber-400/10",
           uploading && "pointer-events-none opacity-60",
         )}
+        style={
+          dragOver
+            ? { borderColor: color + "99", background: color + "1a" }
+            : undefined
+        }
       >
         {uploading ? (
           <>
-            <Loader2 className="h-5 w-5 animate-spin text-amber-400" />
+            <Loader2 className="h-5 w-5 animate-spin" style={{ color }} />
             <span className="text-xs text-muted-foreground">Uploading…</span>
           </>
         ) : (
@@ -145,9 +156,11 @@ export function MediaUploader({
 
 function MediaPreview({
   media,
+  color = DEFAULT_COLOR,
   onRemove,
 }: {
   media: QuizQuestionMedia;
+  color?: string;
   onRemove: () => void;
 }) {
   const category = media.file_type ? getMediaCategory(media.file_type) : "any";
@@ -159,7 +172,7 @@ function MediaPreview({
         <img
           src={media.file_url}
           alt=""
-          className="h-10 w-10 rounded object-cover border border-slate-200"
+          className="h-10 w-10 rounded object-cover border border-amber-500/20"
         />
       ) : (
         <div className="flex h-10 w-10 items-center justify-center rounded bg-card/70">
@@ -174,7 +187,8 @@ function MediaPreview({
             href={media.file_url}
             target="_blank"
             rel="noreferrer"
-            className="truncate text-amber-300 hover:text-amber-200 hover:underline max-w-35"
+            className="truncate hover:underline max-w-35 transition-colors"
+            style={{ color }}
           >
             View file
           </a>

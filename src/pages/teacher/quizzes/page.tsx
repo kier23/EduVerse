@@ -141,15 +141,15 @@ export default function QuizzesPage() {
       {/* Loading */}
       {loading && (
         <div className="flex items-center justify-center py-24">
-          <Loader2 className="h-6 w-6 animate-spin text-indigo-400" />
+          <Loader2 className="h-6 w-6 animate-spin text-amber-400" />
         </div>
       )}
 
       {/* Empty state */}
       {!loading && quizzes.length === 0 && (
-        <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-amber-500/15 bg-white/50 py-24 text-center">
+        <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-amber-500/15 bg-stone-950/50 py-24 text-center">
           <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-400/10">
-            <ClipboardList className="h-7 w-7 text-indigo-400" />
+            <ClipboardList className="h-7 w-7 text-amber-400" />
           </div>
           <div>
             <p className="font-semibold text-white">No quizzes yet</p>
@@ -320,8 +320,8 @@ export default function QuizzesPage() {
           <div className="h-1 bg-linear-to-r from-rose-500 to-red-500" />
           <div className="p-6">
             <DialogHeader className="mb-4">
-              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-red-50">
-                <AlertCircle className="h-5 w-5 text-red-500" />
+              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-red-500/10">
+                <AlertCircle className="h-5 w-5 text-red-400" />
               </div>
               <DialogTitle>Delete quiz?</DialogTitle>
               <DialogDescription>
@@ -372,9 +372,9 @@ function QuizCard({
   onDelete: () => void;
 }) {
   return (
-    <div className="group relative flex flex-col rounded-2xl border border-amber-500/15 bg-stone-950/70 p-5 shadow-lg shadow-indigo-500/5 backdrop-blur-md transition-shadow hover:shadow-indigo-500/10">
+    <div className="group relative flex flex-col rounded-2xl border border-amber-500/15 bg-stone-950/70 p-5 shadow-lg shadow-amber-500/5 backdrop-blur-md transition-shadow hover:shadow-amber-500/10">
       {/* Subject pill */}
-      <span className="mb-3 inline-flex w-fit items-center rounded-full bg-amber-400/10 px-2.5 py-0.5 text-xs font-medium text-amber-600">
+      <span className="mb-3 inline-flex w-fit items-center rounded-full bg-amber-400/10 px-2.5 py-0.5 text-xs font-medium text-amber-400">
         {quiz.activity?.subject?.subject_name ?? "—"}
       </span>
 
@@ -427,7 +427,7 @@ function QuizCard({
           <Users className="h-3.5 w-3.5" />
           Responses
           {(quiz.attempt_count ?? 0) > 0 && (
-            <span className="ml-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-indigo-100 text-amber-600 text-[10px] font-semibold">
+            <span className="ml-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-amber-400/15 text-amber-300 text-[10px] font-semibold">
               {quiz.attempt_count}
             </span>
           )}
@@ -435,7 +435,7 @@ function QuizCard({
         <button
           type="button"
           onClick={onDelete}
-          className="flex h-8 w-8 items-center justify-center rounded-md border border-transparent text-muted-foreground transition hover:border-red-200 hover:bg-red-50 hover:text-red-500"
+          className="flex h-8 w-8 items-center justify-center rounded-md border border-transparent text-muted-foreground transition hover:border-red-500/30 hover:bg-red-500/10 hover:text-red-400"
         >
           <Trash2 className="h-3.5 w-3.5" />
         </button>

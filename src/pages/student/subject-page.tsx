@@ -448,7 +448,7 @@ export function StudentSubjectPage() {
 
                           <div className="flex flex-wrap gap-2 text-xs mt-auto">
                             <span
-                              className={`flex items-center gap-1 rounded-full px-2.5 py-1 ${overdue ? "bg-red-50 text-red-600" : "bg-slate-100 text-slate-300"}`}
+                              className={`flex items-center gap-1 rounded-full px-2.5 py-1 ${overdue ? "bg-red-50 text-red-600" : "bg-slate-100 text-stone-950/75"}`}
                             >
                               <Clock className="h-3 w-3" />
                               {formatDate(a.due_date)}

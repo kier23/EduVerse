@@ -809,6 +809,164 @@ export async function deleteQuizWithActivity(quizId: string) {
   }
 }
 
+// ─── Manual Grading ───────────────────────────────────────────────────────────
+
+// Shape stored inside quiz_settings.settings.manualGrades
+// { [attemptId]: { [questionId]: { points: number; feedback: string } } }
+export type QuizManualGrades = Record<
+  string, // attemptId
+  Record<string, { points: number; feedback: string }> // questionId → grade
+>;
+
+/**
+ * Reads all saved manual grades for a quiz from quiz_settings.settings.manualGrades.
+ * Returns an empty object if none exist yet.
+ */
+export async function fetchManualGrades(quizId: string): Promise<QuizManualGrades> {
+  const { data, error } = await supabase
+    .from("quiz_settings")
+    .select("settings")
+    .eq("quiz_id", quizId)
+    .maybeSingle();
+
+  if (error) throw error;
+  const settings = (data?.settings ?? {}) as Record<string, unknown>;
+  return (settings.manualGrades ?? {}) as QuizManualGrades;
+}
+
+/**
+ * Saves a single manual grade for one question in one attempt.
+ * Merges into the existing manualGrades blob in quiz_settings.settings,
+ * then recalculates and writes the new total score to quiz_attempts.score.
+ *
+ * Score calculation:
+ *   total = auto-graded pts (re-derived from answers vs correct choices/content)
+ *           + sum of all saved manual pts for this attempt
+ */
+export async function saveManualGrade(payload: {
+  quizId: string;
+  attemptId: string;
+  questionId: string;
+  points: number;       // points awarded (already clamped by caller)
+  feedback: string;
+  /** All questions for this quiz — needed to recalculate the full score */
+  allQuestions: QuizQuestion[];
+}): Promise<{ newTotalScore: number }> {
+  const { quizId, attemptId, questionId, points, feedback, allQuestions } = payload;
+
+  // 1. Load existing settings blob
+  const { data: settingsRow, error: sErr } = await supabase
+    .from("quiz_settings")
+    .select("id, settings")
+    .eq("quiz_id", quizId)
+    .maybeSingle();
+
+  if (sErr) throw sErr;
+
+  const existingSettings = (settingsRow?.settings ?? {}) as Record<string, unknown>;
+  const existingManualGrades = (existingSettings.manualGrades ?? {}) as QuizManualGrades;
+
+  // 2. Merge this grade in
+  const updatedManualGrades: QuizManualGrades = {
+    ...existingManualGrades,
+    [attemptId]: {
+      ...(existingManualGrades[attemptId] ?? {}),
+      [questionId]: { points, feedback },
+    },
+  };
+
+  const updatedSettings = { ...existingSettings, manualGrades: updatedManualGrades };
+
+  // 3. Upsert settings
+  if (settingsRow?.id) {
+    const { error } = await supabase
+      .from("quiz_settings")
+      .update({ settings: updatedSettings })
+      .eq("quiz_id", quizId);
+    if (error) throw error;
+  } else {
+    const { error } = await supabase
+      .from("quiz_settings")
+      .insert({ quiz_id: quizId, settings: updatedSettings });
+    if (error) throw error;
+  }
+
+  // 4. Re-derive auto-graded score for this attempt
+  //    Fetch all answers for the attempt + all choices for auto-gradable questions
+  const MANUAL_TYPES = new Set(["essay", "file_upload", "audio_response"]);
+
+  const { data: answers, error: aErr } = await supabase
+    .from("quiz_answers")
+    .select("question_id, answer_text")
+    .eq("attempt_id", attemptId);
+
+  if (aErr) throw aErr;
+
+  const answerMap = Object.fromEntries(
+    (answers ?? []).map((a) => [a.question_id, a.answer_text ?? ""]),
+  );
+
+  let autoScore = 0;
+
+  for (const q of allQuestions) {
+    if (MANUAL_TYPES.has(q.question_type ?? "")) continue;
+    const ans = answerMap[q.id] ?? "";
+    const pts = q.points ?? 0;
+    const content = (q.question_content ?? {}) as Record<string, unknown>;
+
+    if (q.question_type === "multiple_choice" || q.question_type === "image_choice") {
+      // Fetch correct choice for this question
+      const { data: choices } = await supabase
+        .from("quiz_choices")
+        .select("choice_text, is_correct")
+        .eq("question_id", q.id);
+      const correct = (choices ?? []).find((c) => c.is_correct)?.choice_text ?? "";
+      if (ans === correct) autoScore += pts;
+    } else if (q.question_type === "multiple_select") {
+      const { data: choices } = await supabase
+        .from("quiz_choices")
+        .select("choice_text, is_correct")
+        .eq("question_id", q.id);
+      const correctSet = new Set(
+        (choices ?? []).filter((c) => c.is_correct).map((c) => c.choice_text),
+      );
+      // answer_text is stored as comma-joined; split to compare
+      const selected = ans.split(", ").filter(Boolean);
+      const isCorrect =
+        selected.length === correctSet.size &&
+        selected.every((s: any) => correctSet.has(s));
+      if (isCorrect) autoScore += pts;
+    } else if (q.question_type === "true_false") {
+      const correct = String(content.correct_answer ?? "");
+      if (ans === correct) autoScore += pts;
+    } else if (q.question_type === "short_answer") {
+      const sample = String(content.sample_answer ?? "").toLowerCase().trim();
+      if (sample && ans.toLowerCase().trim() === sample) autoScore += pts;
+    } else if (q.question_type === "ordering" || q.question_type === "matching" || q.question_type === "fill_blank") {
+      // These require full comparison — skip for now; teacher can manually adjust
+    }
+  }
+
+  // 5. Sum all saved manual points for this attempt (including the one just saved)
+  const attemptManualGrades = updatedManualGrades[attemptId] ?? {};
+  const manualScore = Object.values(attemptManualGrades).reduce(
+    (sum, g) => sum + (g.points ?? 0),
+    0,
+  );
+
+  const newTotalScore = autoScore + manualScore;
+
+  // 6. Write new total to quiz_attempts.score
+  const { error: uErr } = await supabase
+    .from("quiz_attempts")
+    .update({ score: newTotalScore })
+    .eq("id", attemptId);
+
+  if (uErr) throw uErr;
+
+  return { newTotalScore };
+}
+
 // ─── Media Upload ─────────────────────────────────────────────────────────────
  
 export async function uploadQuizMedia(

@@ -171,7 +171,7 @@ export function AppShell({
           >
             <div className="flex items-center gap-3">
               <img
-                src="/logo/main logo-01.png"
+                src="/logo/Logo only-01.png"
                 alt="EduVerse"
                 className={`h-10 w-auto object-contain transition-all duration-300 ${
                   isCollapsed ? "h-8 w-8" : "h-10"

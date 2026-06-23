@@ -857,6 +857,7 @@ export default function QuizEditorPage() {
                           existingMedia={active.media}
                           accept="any"
                           label="Attach image, audio, video, or PDF"
+                          color={themeColor}
                           onUploaded={(m) =>
                             updateActive({ media: [...active.media, m] })
                           }
@@ -1016,6 +1017,7 @@ function QuestionEditor({
   onUpdate,
   onContentUpdate,
   onImageUpload,
+  themeColor,
 }: {
   question: LocalQuestion;
   onUpdate: (patch: Partial<LocalQuestion>) => void;
@@ -1032,6 +1034,7 @@ function QuestionEditor({
         <MultipleChoiceEditor
           choices={question.choices}
           onChange={(c) => onUpdate({ choices: c })}
+          color={themeColor}
         />
       );
     case "multiple_select":
@@ -1039,6 +1042,7 @@ function QuestionEditor({
         <MultipleSelectEditor
           choices={question.choices}
           onChange={(c) => onUpdate({ choices: c })}
+          color={themeColor}
         />
       );
     case "true_false":
@@ -1070,6 +1074,7 @@ function QuestionEditor({
           answers={(content.answers as string[]) ?? []}
           onTemplateChange={(v) => onContentUpdate({ template: v })}
           onAnswersChange={(v) => onContentUpdate({ answers: v })}
+          color={themeColor}
         />
       );
     case "ordering":
@@ -1077,6 +1082,7 @@ function QuestionEditor({
         <OrderingEditor
           items={(content.items as string[]) ?? [""]}
           onChange={(items) => onContentUpdate({ items })}
+          color={themeColor}
         />
       );
     case "matching":
@@ -1093,6 +1099,7 @@ function QuestionEditor({
           maxSizeMb={(content.max_size_mb as number) ?? 10}
           onAcceptedTypesChange={(v) => onContentUpdate({ accepted_types: v })}
           onMaxSizeChange={(v) => onContentUpdate({ max_size_mb: v })}
+          color={themeColor}
         />
       );
     case "image_choice":
@@ -1101,6 +1108,7 @@ function QuestionEditor({
           choices={question.choices}
           onChange={(c) => onUpdate({ choices: c })}
           onImageUpload={onImageUpload}
+          color={themeColor}
         />
       );
     case "audio_response":
@@ -1110,6 +1118,7 @@ function QuestionEditor({
           instructions={(content.instructions as string) ?? ""}
           onMaxDurationChange={(v) => onContentUpdate({ max_duration_sec: v })}
           onInstructionsChange={(v) => onContentUpdate({ instructions: v })}
+          color={themeColor}
         />
       );
     default:

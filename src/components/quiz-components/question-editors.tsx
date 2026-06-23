@@ -1,11 +1,15 @@
 // quizzes/components/question-editors.tsx
 // Individual editor UI for each of the 11 question types.
+// All accent colors follow the quiz's `color` prop (teacher's chosen primaryColor
+// from QuizSettingsPanel), falling back to amber if none is provided.
 
 import { useRef } from "react";
 import { Plus, Trash2, GripVertical, ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+
+const DEFAULT_COLOR = "#f59e0b"; // amber-500 fallback
 
 // ─── Shared ───────────────────────────────────────────────────────────────────
 
@@ -39,9 +43,11 @@ function OptionInput({
 function CorrectBadge({
   active,
   onClick,
+  color = DEFAULT_COLOR,
 }: {
   active: boolean;
   onClick: () => void;
+  color?: string;
 }) {
   return (
     <button
@@ -49,10 +55,17 @@ function CorrectBadge({
       onClick={onClick}
       className={cn(
         "h-5 rounded-full px-2 text-[10px] font-semibold transition-all shrink-0",
-        active
-          ? "bg-amber-400/15 text-amber-100 ring-1 ring-amber-400/30"
-          : "bg-card/70 text-muted-foreground hover:bg-amber-400/10",
+        !active && "bg-card/70 text-muted-foreground hover:bg-amber-400/10",
       )}
+      style={
+        active
+          ? {
+              background: color + "26",
+              color: color,
+              boxShadow: `0 0 0 1px ${color}4d`,
+            }
+          : undefined
+      }
     >
       {active ? "✓ Correct" : "Mark correct"}
     </button>
@@ -64,9 +77,11 @@ function CorrectBadge({
 export function MultipleChoiceEditor({
   choices,
   onChange,
+  color = DEFAULT_COLOR,
 }: {
   choices: ChoiceRow[];
   onChange: (choices: ChoiceRow[]) => void;
+  color?: string;
 }) {
   const update = (i: number, patch: Partial<ChoiceRow>) => {
     const next = choices.map((c, idx) => (idx === i ? { ...c, ...patch } : c));
@@ -86,10 +101,13 @@ export function MultipleChoiceEditor({
           <div
             className={cn(
               "flex flex-1 items-center gap-2 rounded-lg border px-3 py-2 transition-colors",
-              c.is_correct
-                ? "border-emerald-500/40 bg-emerald-500/10"
-                : "border-amber-500/15 bg-stone-900/50",
+              !c.is_correct && "border-amber-500/15 bg-stone-900/50",
             )}
+            style={
+              c.is_correct
+                ? { borderColor: color + "66", background: color + "1a" }
+                : undefined
+            }
           >
             <OptionInput
               value={c.choice_text}
@@ -99,6 +117,7 @@ export function MultipleChoiceEditor({
             <CorrectBadge
               active={c.is_correct}
               onClick={() => markCorrect(i)}
+              color={color}
             />
           </div>
           <button
@@ -127,9 +146,11 @@ export function MultipleChoiceEditor({
 export function MultipleSelectEditor({
   choices,
   onChange,
+  color = DEFAULT_COLOR,
 }: {
   choices: ChoiceRow[];
   onChange: (choices: ChoiceRow[]) => void;
+  color?: string;
 }) {
   const update = (i: number, patch: Partial<ChoiceRow>) =>
     onChange(choices.map((c, idx) => (idx === i ? { ...c, ...patch } : c)));
@@ -150,10 +171,13 @@ export function MultipleSelectEditor({
           <div
             className={cn(
               "flex flex-1 items-center gap-2 rounded-lg border px-3 py-2 transition-colors",
-              c.is_correct
-                ? "border-amber-500/60 bg-amber-400/10"
-                : "border-amber-500/15 bg-stone-900/50",
+              !c.is_correct && "border-amber-500/15 bg-stone-900/50",
             )}
+            style={
+              c.is_correct
+                ? { borderColor: color + "99", background: color + "1a" }
+                : undefined
+            }
           >
             <OptionInput
               value={c.choice_text}
@@ -163,6 +187,7 @@ export function MultipleSelectEditor({
             <CorrectBadge
               active={c.is_correct}
               onClick={() => toggleCorrect(i)}
+              color={color}
             />
           </div>
           <button
@@ -195,6 +220,8 @@ export function TrueFalseEditor({
   correctAnswer: "true" | "false" | null;
   onChange: (v: "true" | "false") => void;
 }) {
+  // True/False intentionally keeps semantic emerald/red regardless of theme color,
+  // since these communicate correctness rather than brand accent.
   return (
     <div className="flex gap-3">
       {(["true", "false"] as const).map((val) => (
@@ -325,11 +352,13 @@ export function FillBlankEditor({
   answers,
   onTemplateChange,
   onAnswersChange,
+  color = DEFAULT_COLOR,
 }: {
   template: string;
   answers: string[];
   onTemplateChange: (v: string) => void;
   onAnswersChange: (v: string[]) => void;
+  color?: string;
 }) {
   const blankCount = (template.match(/\[blank\]/gi) ?? []).length;
   const updateAnswer = (i: number, v: string) => {
@@ -353,12 +382,12 @@ export function FillBlankEditor({
         />
         <p className="text-xs text-muted-foreground">
           Use{" "}
-          <code className="rounded bg-stone-800 px-1 text-xs text-amber-200">
+          <code className="rounded bg-stone-800 px-1 text-xs" style={{ color }}>
             [blank]
           </code>{" "}
           to mark each gap.{" "}
           {blankCount > 0 && (
-            <span className="text-amber-400 font-medium">
+            <span className="font-medium" style={{ color }}>
               {blankCount} blank{blankCount !== 1 ? "s" : ""} detected.
             </span>
           )}
@@ -394,9 +423,11 @@ export function FillBlankEditor({
 export function OrderingEditor({
   items,
   onChange,
+  color = DEFAULT_COLOR,
 }: {
   items: string[];
   onChange: (items: string[]) => void;
+  color?: string;
 }) {
   const update = (i: number, v: string) =>
     onChange(items.map((it, idx) => (idx === i ? v : it)));
@@ -410,7 +441,10 @@ export function OrderingEditor({
       </p>
       {items.map((item, i) => (
         <div key={i} className="flex items-center gap-2">
-          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-400/10 text-xs font-semibold text-amber-200">
+          <span
+            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold"
+            style={{ background: color + "1a", color }}
+          >
             {i + 1}
           </span>
           <GripVertical className="h-4 w-4 text-slate-300 shrink-0" />
@@ -448,11 +482,13 @@ export function FileUploadEditor({
   maxSizeMb,
   onAcceptedTypesChange,
   onMaxSizeChange,
+  color = DEFAULT_COLOR,
 }: {
   acceptedTypes: string[];
   maxSizeMb: number;
   onAcceptedTypesChange: (v: string[]) => void;
   onMaxSizeChange: (v: number) => void;
+  color?: string;
 }) {
   const FILE_TYPES = ["pdf", "docx", "jpg", "png", "mp3", "mp4", "zip"];
   const toggle = (t: string) =>
@@ -469,21 +505,32 @@ export function FileUploadEditor({
           Accepted file types
         </label>
         <div className="flex flex-wrap gap-2">
-          {FILE_TYPES.map((t) => (
-            <button
-              key={t}
-              type="button"
-              onClick={() => toggle(t)}
-              className={cn(
-                "rounded-full px-3 py-1 text-xs font-medium border transition-all",
-                acceptedTypes.includes(t)
-                  ? "bg-amber-400/15 text-amber-100 border-amber-400/30"
-                  : "bg-card/70 text-muted-foreground border-amber-500/15 hover:border-amber-300/30",
-              )}
-            >
-              .{t}
-            </button>
-          ))}
+          {FILE_TYPES.map((t) => {
+            const active = acceptedTypes.includes(t);
+            return (
+              <button
+                key={t}
+                type="button"
+                onClick={() => toggle(t)}
+                className={cn(
+                  "rounded-full px-3 py-1 text-xs font-medium border transition-all",
+                  !active &&
+                    "bg-card/70 text-muted-foreground border-amber-500/15 hover:border-amber-300/30",
+                )}
+                style={
+                  active
+                    ? {
+                        background: color + "26",
+                        color: color,
+                        borderColor: color + "4d",
+                      }
+                    : undefined
+                }
+              >
+                .{t}
+              </button>
+            );
+          })}
         </div>
       </div>
       <div className="space-y-1.5">
@@ -509,10 +556,12 @@ export function ImageChoiceEditor({
   choices,
   onChange,
   onImageUpload,
+  color = DEFAULT_COLOR,
 }: {
   choices: ChoiceRow[];
   onChange: (choices: ChoiceRow[]) => void;
   onImageUpload: (index: number, file: File) => Promise<string>;
+  color?: string;
 }) {
   const fileRefs = useRef<(HTMLInputElement | null)[]>([]);
   const update = (i: number, patch: Partial<ChoiceRow>) =>
@@ -536,8 +585,9 @@ export function ImageChoiceEditor({
             key={i}
             className={cn(
               "relative flex flex-col rounded-xl border-2 overflow-hidden transition-all",
-              c.is_correct ? "border-emerald-400/60" : "border-amber-500/15",
+              !c.is_correct && "border-amber-500/15",
             )}
+            style={c.is_correct ? { borderColor: color + "99" } : undefined}
           >
             {/* Image area */}
             <button
@@ -582,6 +632,7 @@ export function ImageChoiceEditor({
               <CorrectBadge
                 active={c.is_correct}
                 onClick={() => markCorrect(i)}
+                color={color}
               />
               <button
                 type="button"
@@ -613,15 +664,24 @@ export function AudioResponseEditor({
   instructions,
   onMaxDurationChange,
   onInstructionsChange,
+  color = DEFAULT_COLOR,
 }: {
   maxDurationSec: number;
   instructions: string;
   onMaxDurationChange: (v: number) => void;
   onInstructionsChange: (v: string) => void;
+  color?: string;
 }) {
   return (
     <div className="space-y-4">
-      <div className="rounded-xl bg-amber-400/10 border border-amber-500/15 p-3 text-xs text-amber-100">
+      <div
+        className="rounded-xl border p-3 text-xs"
+        style={{
+          background: color + "1a",
+          borderColor: color + "33",
+          color: color,
+        }}
+      >
         Students will record audio directly in the browser (up to the max
         duration you set).
       </div>
