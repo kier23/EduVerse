@@ -197,7 +197,11 @@ export function StudentCalendarPage() {
 
   const handleDayClick = (day: Date) => {
     setSelectedDay(day);
-    setDayPanelOpen(true);
+    // Only open the bottom-sheet dialog on mobile (below xl breakpoint).
+    // On desktop the right-hand panel updates reactively — no dialog needed.
+    if (window.innerWidth < 1280) {
+      setDayPanelOpen(true);
+    }
   };
 
   return (

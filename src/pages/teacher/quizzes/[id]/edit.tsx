@@ -613,7 +613,7 @@ export default function QuizEditorPage() {
         {/* ── Center: editor ───────────────────────────────────────────────── */}
         <main className="flex flex-1 flex-col overflow-y-auto">
           {/* Mobile: question selector strip */}
-          <div className="flex items-center gap-2 border-b border-amber-500/15 bg-card/85 px-3 py-2 md:hidden overflow-x-auto">
+          <div className="flex items-center gap-2 border-b border-amber-500/15 bg-card/85 px-3 py-5 md:hidden overflow-x-auto">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
