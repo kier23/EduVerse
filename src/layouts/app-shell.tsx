@@ -528,29 +528,34 @@ export function AppShell({
         <aside
           className={cn(
             "fixed left-6 top-6 mt-6 hidden h-[calc(100vh-3rem)] rounded-3xl border border-amber-500/15 bg-stone-950/75 shadow-xl shadow-amber-500/5 backdrop-blur-xl lg:flex lg:flex-col transition-all duration-300 z-50",
-            isCollapsed ? "w-20 px-3 p-5" : "w-[18rem] px-5 p-5",
+            isCollapsed ? "w-[5.5rem] px-3 py-5" : "w-[18rem] px-5 py-5",
           )}
         >
           {/* Logo */}
-          <div
-            className={cn(
-              "flex",
-              isCollapsed
-                ? "flex-col items-center gap-2"
-                : "items-center justify-between",
-            )}
-          >
-            <div className="flex items-center gap-3">
+          {isCollapsed ? (
+            <div className="flex flex-col items-center gap-2">
               <img
                 src="/logo/Logo only-01.png"
                 alt="EduVerse"
-                className={cn(
-                  "h-10 w-auto object-contain transition-all duration-300",
-                  isCollapsed && "h-8 w-8",
-                )}
+                className="h-8 w-8 shrink-0 object-contain"
               />
-              {!isCollapsed && (
-                <div className="space-y-1">
+              <button
+                type="button"
+                onClick={() => setIsCollapsed(!isCollapsed)}
+                className="rounded-lg p-1 text-amber-100/80 hover:bg-amber-400/10 hover:text-amber-50 transition-colors"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3 min-w-0">
+                <img
+                  src="/logo/Logo only-01.png"
+                  alt="EduVerse"
+                  className="h-10 w-auto shrink-0 object-contain"
+                />
+                <div className="space-y-1 min-w-0">
                   <p className="text-xs uppercase tracking-[0.24em] text-muted-foreground">
                     EduVerse
                   </p>
@@ -558,20 +563,16 @@ export function AppShell({
                     Navigation
                   </h2>
                 </div>
-              )}
-            </div>
-            <button
-              type="button"
-              onClick={() => setIsCollapsed(!isCollapsed)}
-              className="rounded-lg p-1 text-amber-100/80 hover:bg-amber-400/10 hover:text-amber-50 transition-colors"
-            >
-              {isCollapsed ? (
-                <ChevronRight className="h-5 w-5" />
-              ) : (
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsCollapsed(!isCollapsed)}
+                className="shrink-0 rounded-lg p-1 text-amber-100/80 hover:bg-amber-400/10 hover:text-amber-50 transition-colors"
+              >
                 <ChevronLeft className="h-5 w-5" />
-              )}
-            </button>
-          </div>
+              </button>
+            </div>
+          )}
 
           <div className="mt-6 flex-1 space-y-6 overflow-y-auto pr-1">
             {/* Desktop: collapsed sidebar shows icons only */}
@@ -582,7 +583,7 @@ export function AppShell({
                     <Link
                       to="/student/dashboard"
                       className={cn(
-                        "rounded-xl px-4 py-3 text-sm font-medium transition flex items-center justify-center",
+                        "rounded-xl py-3 text-sm font-medium transition flex items-center justify-center",
                         isActive("/student/dashboard")
                           ? "bg-linear-to-r from-amber-400 via-orange-400 to-yellow-500 text-stone-950"
                           : "text-slate-200 hover:bg-amber-400/10 hover:text-amber-50",
@@ -593,7 +594,7 @@ export function AppShell({
                     <Link
                       to="/student/calendar"
                       className={cn(
-                        "rounded-xl px-4 py-3 text-sm font-medium transition flex items-center justify-center",
+                        "rounded-xl py-3 text-sm font-medium transition flex items-center justify-center",
                         location.pathname.startsWith("/student/calendar")
                           ? "bg-linear-to-r from-amber-400 via-orange-400 to-yellow-500 text-stone-950"
                           : "text-slate-200 hover:bg-amber-400/10 hover:text-amber-50",
@@ -608,7 +609,7 @@ export function AppShell({
                     <Link
                       to="/teacher/dashboard"
                       className={cn(
-                        "rounded-xl px-4 py-3 text-sm font-medium transition flex items-center justify-center",
+                        "rounded-xl py-3 text-sm font-medium transition flex items-center justify-center",
                         isActive("/teacher/dashboard")
                           ? "bg-linear-to-r from-amber-400 via-orange-400 to-yellow-500 text-stone-950"
                           : "text-slate-200 hover:bg-amber-400/10 hover:text-amber-50",
@@ -619,7 +620,7 @@ export function AppShell({
                     <Link
                       to="/teacher/subjects"
                       className={cn(
-                        "rounded-xl px-4 py-3 text-sm font-medium transition flex items-center justify-center",
+                        "rounded-xl py-3 text-sm font-medium transition flex items-center justify-center",
                         location.pathname.startsWith("/teacher/subjects")
                           ? "bg-linear-to-r from-amber-400 via-orange-400 to-yellow-500 text-stone-950"
                           : "text-slate-200 hover:bg-amber-400/10 hover:text-amber-50",
@@ -630,7 +631,7 @@ export function AppShell({
                     <Link
                       to="/teacher/calendar"
                       className={cn(
-                        "rounded-xl px-4 py-3 text-sm font-medium transition flex items-center justify-center",
+                        "rounded-xl py-3 text-sm font-medium transition flex items-center justify-center",
                         isActive("/teacher/calendar")
                           ? "bg-linear-to-r from-amber-400 via-orange-400 to-yellow-500 text-stone-950"
                           : "text-slate-200 hover:bg-amber-400/10 hover:text-amber-50",
@@ -641,7 +642,7 @@ export function AppShell({
                     <Link
                       to="/teacher/quizzes"
                       className={cn(
-                        "rounded-xl px-4 py-3 text-sm font-medium transition flex items-center justify-center",
+                        "rounded-xl py-3 text-sm font-medium transition flex items-center justify-center",
                         isActive("/teacher/quizzes")
                           ? "bg-linear-to-r from-amber-400 via-orange-400 to-yellow-500 text-stone-950"
                           : "text-slate-200 hover:bg-amber-400/10 hover:text-amber-50",
@@ -656,7 +657,7 @@ export function AppShell({
                     <Link
                       to="/superadmin/dashboard"
                       className={cn(
-                        "rounded-xl px-4 py-3 text-sm font-medium transition flex items-center justify-center",
+                        "rounded-xl py-3 text-sm font-medium transition flex items-center justify-center",
                         isActive("/superadmin/dashboard")
                           ? "bg-linear-to-r from-amber-400 via-orange-400 to-yellow-500 text-stone-950"
                           : "text-slate-200 hover:bg-amber-400/10 hover:text-amber-50",
@@ -667,7 +668,7 @@ export function AppShell({
                     <Link
                       to="/superadmin/accounts"
                       className={cn(
-                        "rounded-xl px-4 py-3 text-sm font-medium transition flex items-center justify-center",
+                        "rounded-xl py-3 text-sm font-medium transition flex items-center justify-center",
                         isActive("/superadmin/accounts")
                           ? "bg-linear-to-r from-amber-400 via-orange-400 to-yellow-500 text-stone-950"
                           : "text-slate-200 hover:bg-amber-400/10 hover:text-amber-50",
@@ -764,7 +765,7 @@ export function AppShell({
         <main
           className={cn(
             "min-h-screen w-full p-4 md:p-6 lg:p-10 transition-all duration-300",
-            isCollapsed ? "lg:pl-28" : "lg:pl-80",
+            isCollapsed ? "lg:pl-[8.5rem]" : "lg:pl-80",
           )}
         >
           <div className="mx-auto max-w-6xl">
