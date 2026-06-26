@@ -85,7 +85,9 @@ export function StudentSubjectPage() {
         setMaterials(mats);
         setActivities(acts);
 
-        const quizActivities = acts.filter((a) => a.type === "quiz");
+        const quizActivities = acts.filter(
+          (a) => a.type === "quiz" || a.type === "exam",
+        );
         if (quizActivities.length > 0) {
           const { data: quizRows } = await supabase
             .from("quizzes")
@@ -142,8 +144,12 @@ export function StudentSubjectPage() {
     () => activities.filter((a) => a.type === "quiz"),
     [activities],
   );
+  const examActivities = useMemo(
+    () => activities.filter((a) => a.type === "exam"),
+    [activities],
+  );
   const otherActivities = useMemo(
-    () => activities.filter((a) => a.type !== "quiz"),
+    () => activities.filter((a) => a.type !== "quiz" && a.type !== "exam"),
     [activities],
   );
 
@@ -201,7 +207,7 @@ export function StudentSubjectPage() {
 
       {/* Stats row */}
       {!loading && (
-        <div className="mb-5 sm:mb-6 grid grid-cols-3 gap-2 sm:gap-4">
+        <div className="mb-5 sm:mb-6 grid grid-cols-4 gap-2 sm:gap-4">
           {[
             {
               label: "Materials",
@@ -220,6 +226,12 @@ export function StudentSubjectPage() {
               value: quizActivities.length,
               color: "text-amber-600",
               bg: "bg-amber-400/10",
+            },
+            {
+              label: "Exams",
+              value: examActivities.length,
+              color: "text-rose-600",
+              bg: "bg-rose-400/10",
             },
           ].map((s) => (
             <div
@@ -368,7 +380,7 @@ export function StudentSubjectPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <ClipboardList className="h-5 w-5 text-amber-600" />
-                  Quizzes & Exams
+                  Quizzes
                 </CardTitle>
                 <CardDescription>
                   Click a quiz to start or review your attempt.
@@ -386,89 +398,95 @@ export function StudentSubjectPage() {
                   </div>
                 ) : (
                   <div className="grid gap-3 sm:grid-cols-2">
-                    {quizActivities.map((a) => {
-                      const quizId = quizIds[a.id];
-                      const score =
-                        quizId !== undefined
-                          ? attemptScores[quizId]
-                          : undefined;
-                      const attempted =
-                        quizId !== undefined && quizId in attemptScores;
-                      const overdue = isPast(a.due_date);
-                      const attemptsAllowed = quizId
-                        ? quizAttemptsAllowed[quizId]
-                        : null;
-                      const attemptCount = quizId
-                        ? (attemptCounts[quizId] ?? 0)
-                        : 0;
-                      const isLimitReached =
-                        attemptsAllowed != null &&
-                        attemptCount >= attemptsAllowed;
+                    {quizActivities.map((a) => (
+                      <QuizExamCard
+                        key={a.id}
+                        activity={a}
+                        quizId={quizIds[a.id]}
+                        score={
+                          quizIds[a.id] !== undefined
+                            ? attemptScores[quizIds[a.id]]
+                            : undefined
+                        }
+                        attempted={
+                          quizIds[a.id] !== undefined &&
+                          quizIds[a.id] in attemptScores
+                        }
+                        attemptsAllowed={
+                          quizIds[a.id]
+                            ? quizAttemptsAllowed[quizIds[a.id]]
+                            : null
+                        }
+                        attemptCount={
+                          quizIds[a.id]
+                            ? (attemptCounts[quizIds[a.id]] ?? 0)
+                            : 0
+                        }
+                        accentColor="amber"
+                        onNavigate={(id) => navigate(`/student/quiz/${id}`)}
+                      />
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
-                      return (
-                        <button
-                          key={a.id}
-                          type="button"
-                          disabled={!quizId || isLimitReached}
-                          onClick={() =>
-                            quizId && navigate(`/student/quiz/${quizId}`)
-                          }
-                          className="group flex flex-col rounded-2xl border border-amber-500/15 bg-stone-950/70 p-4 text-left shadow-sm backdrop-blur-md transition-all hover:shadow-md hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
-                        >
-                          <div className="flex items-start justify-between gap-2 mb-3">
-                            <div
-                              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${attempted ? "bg-emerald-400/10" : "bg-amber-400/10"}`}
-                            >
-                              {attempted ? (
-                                <CheckCircle2 className="h-5 w-5 text-emerald-500" />
-                              ) : (
-                                <Play className="h-5 w-5 text-amber-500" />
-                              )}
-                            </div>
-                            {attempted &&
-                              score !== null &&
-                              score !== undefined && (
-                                <span className="rounded-full bg-emerald-400/10 px-2.5 py-1 text-xs font-semibold text-emerald-700">
-                                  {score} pts
-                                </span>
-                              )}
-                            {!quizId && (
-                              <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-muted-foreground">
-                                Not set up
-                              </span>
-                            )}
-                          </div>
-
-                          <p className="text-sm font-semibold text-white group-hover:text-amber-700 transition-colors line-clamp-2 mb-2">
-                            {a.title}
-                          </p>
-
-                          <div className="flex flex-wrap gap-2 text-xs mt-auto">
-                            <span
-                              className={`flex items-center gap-1 rounded-full px-2.5 py-1 ${overdue ? "bg-red-50 text-red-600" : "bg-slate-100 text-stone-950/75"}`}
-                            >
-                              <Clock className="h-3 w-3" />
-                              {formatDate(a.due_date)}
-                            </span>
-                            <span className="flex items-center gap-1 rounded-full bg-amber-400/10 px-2.5 py-1 text-amber-600">
-                              <Trophy className="h-3 w-3" />
-                              {a.points ?? 0} pts
-                            </span>
-                          </div>
-
-                          <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-2">
-                            <span className="text-xs text-muted-foreground">
-                              {isLimitReached
-                                ? "No attempts remaining"
-                                : attempted
-                                  ? "Review / Retake"
-                                  : "Start quiz"}
-                            </span>
-                            <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-indigo-400 transition-colors" />
-                          </div>
-                        </button>
-                      );
-                    })}
+        {/* Exams — full width */}
+        {(loading || examActivities.length > 0) && (
+          <div className="xl:col-span-2">
+            <Card>
+              <div className="h-1 bg-linear-to-r from-rose-500 to-pink-500" />
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ClipboardList className="h-5 w-5 text-rose-600" />
+                  Exams
+                </CardTitle>
+                <CardDescription>
+                  Click an exam to start or review your attempt.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {[1, 2].map((n) => (
+                      <div
+                        key={n}
+                        className="h-24 animate-pulse rounded-xl bg-stone-900/70"
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {examActivities.map((a) => (
+                      <QuizExamCard
+                        key={a.id}
+                        activity={a}
+                        quizId={quizIds[a.id]}
+                        score={
+                          quizIds[a.id] !== undefined
+                            ? attemptScores[quizIds[a.id]]
+                            : undefined
+                        }
+                        attempted={
+                          quizIds[a.id] !== undefined &&
+                          quizIds[a.id] in attemptScores
+                        }
+                        attemptsAllowed={
+                          quizIds[a.id]
+                            ? quizAttemptsAllowed[quizIds[a.id]]
+                            : null
+                        }
+                        attemptCount={
+                          quizIds[a.id]
+                            ? (attemptCounts[quizIds[a.id]] ?? 0)
+                            : 0
+                        }
+                        accentColor="rose"
+                        onNavigate={(id) => navigate(`/student/quiz/${id}`)}
+                      />
+                    ))}
                   </div>
                 )}
               </CardContent>
@@ -477,5 +495,126 @@ export function StudentSubjectPage() {
         )}
       </div>
     </AppShell>
+  );
+}
+
+// ─── QuizExamCard ─────────────────────────────────────────────────────────────
+
+type AccentColor = "amber" | "rose";
+
+const accentStyles: Record<
+  AccentColor,
+  {
+    border: string;
+    iconBg: string;
+    icon: string;
+    hover: string;
+    points: string;
+  }
+> = {
+  amber: {
+    border: "border-amber-500/15",
+    iconBg: "bg-amber-400/10",
+    icon: "text-amber-500",
+    hover: "group-hover:text-amber-700",
+    points: "bg-amber-400/10 text-amber-600",
+  },
+  rose: {
+    border: "border-rose-500/15",
+    iconBg: "bg-rose-400/10",
+    icon: "text-rose-500",
+    hover: "group-hover:text-rose-700",
+    points: "bg-rose-400/10 text-rose-600",
+  },
+};
+
+function QuizExamCard({
+  activity,
+  quizId,
+  score,
+  attempted,
+  attemptsAllowed,
+  attemptCount,
+  accentColor,
+  onNavigate,
+}: {
+  activity: Activity;
+  quizId: string | undefined;
+  score: number | null | undefined;
+  attempted: boolean;
+  attemptsAllowed: number | null | undefined;
+  attemptCount: number;
+  accentColor: AccentColor;
+  onNavigate: (quizId: string) => void;
+}) {
+  const overdue = isPast(activity.due_date);
+  const isLimitReached =
+    attemptsAllowed != null && attemptCount >= attemptsAllowed;
+  const accent = accentStyles[accentColor];
+  const isExam = accentColor === "rose";
+
+  return (
+    <button
+      type="button"
+      disabled={!quizId || isLimitReached}
+      onClick={() => quizId && onNavigate(quizId)}
+      className={`group flex flex-col rounded-2xl border ${accent.border} bg-stone-950/70 p-4 text-left shadow-sm backdrop-blur-md transition-all hover:shadow-md hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400`}
+    >
+      <div className="flex items-start justify-between gap-2 mb-3">
+        <div
+          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${attempted ? "bg-emerald-400/10" : accent.iconBg}`}
+        >
+          {attempted ? (
+            <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+          ) : (
+            <Play className={`h-5 w-5 ${accent.icon}`} />
+          )}
+        </div>
+        {attempted && score !== null && score !== undefined && (
+          <span className="rounded-full bg-emerald-400/10 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+            {score} pts
+          </span>
+        )}
+        {!quizId && (
+          <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-muted-foreground">
+            Not set up
+          </span>
+        )}
+      </div>
+
+      <p
+        className={`text-sm font-semibold text-white ${accent.hover} transition-colors line-clamp-2 mb-2`}
+      >
+        {activity.title}
+      </p>
+
+      <div className="flex flex-wrap gap-2 text-xs mt-auto">
+        <span
+          className={`flex items-center gap-1 rounded-full px-2.5 py-1 ${overdue ? "bg-red-50 text-red-600" : "bg-slate-100 text-stone-950/75"}`}
+        >
+          <Clock className="h-3 w-3" />
+          {formatDate(activity.due_date)}
+        </span>
+        <span
+          className={`flex items-center gap-1 rounded-full px-2.5 py-1 ${accent.points}`}
+        >
+          <Trophy className="h-3 w-3" />
+          {activity.points ?? 0} pts
+        </span>
+      </div>
+
+      <div className="mt-3 flex items-center justify-between border-t border-slate-100/10 pt-2">
+        <span className="text-xs text-muted-foreground">
+          {isLimitReached
+            ? "No attempts remaining"
+            : attempted
+              ? "Review / Retake"
+              : isExam
+                ? "Start exam"
+                : "Start quiz"}
+        </span>
+        <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-indigo-400 transition-colors" />
+      </div>
+    </button>
   );
 }

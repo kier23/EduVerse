@@ -38,6 +38,7 @@ const PRESET_COLORS = [
 interface QuizSettingsPanelProps {
   quizId: string;
   quiz: Quiz | null;
+  activityType?: "quiz" | "exam";
   onClose: () => void;
   onSaved: (quiz: Quiz, settings: QuizSettings) => void;
 }
@@ -45,6 +46,7 @@ interface QuizSettingsPanelProps {
 export function QuizSettingsPanel({
   quizId,
   quiz,
+  activityType = "quiz",
   onClose,
   onSaved,
 }: QuizSettingsPanelProps) {
@@ -146,9 +148,11 @@ export function QuizSettingsPanel({
         {/* Header */}
         <div className="flex items-center justify-between border-b border-amber-500/15 px-5 py-4">
           <div>
-            <h2 className="text-sm font-semibold text-white">Quiz Settings</h2>
+            <h2 className="text-sm font-semibold text-white">
+              {activityType === "exam" ? "Exam" : "Quiz"} Settings
+            </h2>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Configure how this quiz behaves
+              Configure how this {activityType} behaves
             </p>
           </div>
           <button

@@ -7,8 +7,26 @@ import { dashboardPathForRole } from "@/lib/auth-redirect";
 import { supabase } from "@/lib/supabase";
 import type { UserRole } from "@/types/auth";
 
+/** Returns true if the string looks like an email address. */
+function isEmail(value: string) {
+  return value.includes("@");
+}
+
+/** Look up a user's email by their username from the public users table. */
+async function resolveEmailFromUsername(username: string): Promise<string> {
+  const { data, error } = await supabase
+    .from("users")
+    .select("email")
+    .eq("username", username)
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!data?.email) throw new Error("No account found for that username.");
+  return data.email;
+}
+
 export function LoginPage() {
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState(""); // email OR username
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -19,6 +37,11 @@ export function LoginPage() {
     setSubmitting(true);
     setError("");
     try {
+      // Resolve to an email whether the user typed an email or a username.
+      const email = isEmail(identifier)
+        ? identifier.trim()
+        : await resolveEmailFromUsername(identifier.trim());
+
       const { data, error: signInError } =
         await supabase.auth.signInWithPassword({ email, password });
 
@@ -50,10 +73,11 @@ export function LoginPage() {
     >
       <form className="space-y-4" onSubmit={onSubmit}>
         <Input
-          placeholder="Email"
-          type="email"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
+          placeholder="Email or username"
+          type="text"
+          autoComplete="username"
+          value={identifier}
+          onChange={(event) => setIdentifier(event.target.value)}
           required
         />
         <Input

@@ -40,6 +40,7 @@ import {
   deleteQuizWithActivity,
   type QuizWithActivity,
   type Subject,
+  type ActivityType,
 } from "@/lib/api/eduverse";
 
 function formatDate(dateStr: string | null) {
@@ -58,6 +59,7 @@ export default function QuizzesPage() {
   const [quizzes, setQuizzes] = useState<QuizWithActivity[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<ActivityType>("quiz");
 
   // Create dialog
   const [createOpen, setCreateOpen] = useState(false);
@@ -98,6 +100,7 @@ export default function QuizzesPage() {
         instructions: form.instructions,
         due_date: form.due_date,
         points: Number(form.points) || 100,
+        activityType: activeTab,
       });
       navigate(`/teacher/quizzes/${quiz_id}/edit`);
     } catch (err) {
@@ -121,20 +124,52 @@ export default function QuizzesPage() {
     }
   };
 
+  const visibleItems = quizzes.filter((q) => q.activity?.type === activeTab);
+  const quizCount = quizzes.filter((q) => q.activity?.type === "quiz").length;
+  const examCount = quizzes.filter((q) => q.activity?.type === "exam").length;
+
   return (
     <AppShell title="Quizzes & Exams">
       {/* Page header row */}
-      <div className="mb-6 flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          {quizzes.length} quiz{quizzes.length !== 1 ? "zes" : ""} created
-        </p>
+      <div className="mb-5 flex items-center justify-between">
+        {/* Tabs */}
+        <div className="flex items-center gap-1 rounded-xl border border-amber-500/15 bg-stone-950/60 p-1">
+          {(["quiz", "exam"] as ActivityType[]).map((tab) => {
+            const count = tab === "quiz" ? quizCount : examCount;
+            const isActive = activeTab === tab;
+            return (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => setActiveTab(tab)}
+                className={`flex items-center gap-2 rounded-lg px-3.5 py-1.5 text-xs font-semibold capitalize transition-all ${
+                  isActive
+                    ? "bg-amber-400 text-white shadow-sm"
+                    : "text-muted-foreground hover:text-white"
+                }`}
+              >
+                {tab === "quiz" ? "Quizzes" : "Exams"}
+                <span
+                  className={`flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-bold transition-all ${
+                    isActive
+                      ? "bg-white/20 text-white"
+                      : "bg-stone-800 text-stone-400"
+                  }`}
+                >
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
         <Button
           size="sm"
           className="bg-amber-400 hover:bg-amber-600 text-white gap-1.5"
           onClick={() => setCreateOpen(true)}
         >
           <Plus className="h-4 w-4" />
-          New Quiz
+          New {activeTab === "exam" ? "Exam" : "Quiz"}
         </Button>
       </div>
 
@@ -146,15 +181,18 @@ export default function QuizzesPage() {
       )}
 
       {/* Empty state */}
-      {!loading && quizzes.length === 0 && (
+      {!loading && visibleItems.length === 0 && (
         <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-amber-500/15 bg-stone-950/50 py-24 text-center">
           <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-400/10">
             <ClipboardList className="h-7 w-7 text-amber-400" />
           </div>
           <div>
-            <p className="font-semibold text-white">No quizzes yet</p>
+            <p className="font-semibold text-white">
+              No {activeTab === "exam" ? "exams" : "quizzes"} yet
+            </p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Create your first quiz to get started.
+              Create your first {activeTab === "exam" ? "exam" : "quiz"} to get
+              started.
             </p>
           </div>
           <Button
@@ -163,15 +201,15 @@ export default function QuizzesPage() {
             onClick={() => setCreateOpen(true)}
           >
             <Plus className="h-4 w-4" />
-            Create Quiz
+            Create {activeTab === "exam" ? "Exam" : "Quiz"}
           </Button>
         </div>
       )}
 
-      {/* Quiz grid */}
-      {!loading && quizzes.length > 0 && (
+      {/* Grid */}
+      {!loading && visibleItems.length > 0 && (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {quizzes.map((quiz) => (
+          {visibleItems.map((quiz) => (
             <QuizCard
               key={quiz.id}
               quiz={quiz}
@@ -191,7 +229,9 @@ export default function QuizzesPage() {
           <div className="h-1 bg-linear-to-r from-amber-500 via-orange-500 to-yellow-500" />
           <div className="p-6">
             <DialogHeader className="mb-5">
-              <DialogTitle>New Quiz</DialogTitle>
+              <DialogTitle>
+                New {activeTab === "exam" ? "Exam" : "Quiz"}
+              </DialogTitle>
               <DialogDescription>
                 Set up the basics — you can customize questions after creation.
               </DialogDescription>
@@ -200,7 +240,7 @@ export default function QuizzesPage() {
             <div className="space-y-4">
               <div className="space-y-1.5">
                 <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  Quiz Title
+                  {activeTab === "exam" ? "Exam" : "Quiz"} Title
                 </label>
                 <Input
                   placeholder="e.g. Chapter 3 Quiz"
@@ -323,7 +363,10 @@ export default function QuizzesPage() {
               <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-red-500/10">
                 <AlertCircle className="h-5 w-5 text-red-400" />
               </div>
-              <DialogTitle>Delete quiz?</DialogTitle>
+              <DialogTitle>
+                Delete{" "}
+                {deleteTarget?.activity?.type === "exam" ? "exam" : "quiz"}?
+              </DialogTitle>
               <DialogDescription>
                 <strong>"{deleteTarget?.activity?.title}"</strong> and all its
                 questions, responses, and settings will be permanently deleted.

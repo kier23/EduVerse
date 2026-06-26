@@ -29,6 +29,7 @@ import {
   type QuizAnswer,
   type QuizManualGrades,
 } from "@/lib/api/eduverse";
+import { supabase } from "@/lib/supabase";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -86,6 +87,7 @@ export default function QuizResponsesPage() {
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [attempts, setAttempts] = useState<QuizAttempt[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activityType, setActivityType] = useState<"quiz" | "exam">("quiz");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [attemptAnswers, setAttemptAnswers] = useState<
     Record<string, QuizAnswer[]>
@@ -104,10 +106,22 @@ export default function QuizResponsesPage() {
       fetchQuizAttempts(quizId),
       fetchManualGrades(quizId),
     ])
-      .then(([{ questions: qs }, atts, savedGrades]) => {
+      .then(([{ quiz, questions: qs }, atts, savedGrades]) => {
         const mappedQs = qs.map((q) => q as QuizQuestion);
         setQuestions(mappedQs);
         setAttempts(atts);
+
+        // Resolve whether this is a quiz or exam from the linked activity
+        if (quiz.activity_id) {
+          supabase
+            .from("activities")
+            .select("type")
+            .eq("id", quiz.activity_id)
+            .single()
+            .then(({ data }) => {
+              if (data?.type === "exam") setActivityType("exam");
+            });
+        }
 
         // Pre-populate manualGrades state from persisted data
         const initialGrades: Record<string, Record<string, ManualGrade>> = {};
@@ -267,7 +281,7 @@ export default function QuizResponsesPage() {
         </button>
         <div className="flex-1 min-w-0">
           <p className="text-[10px] uppercase tracking-widest text-amber-500 font-medium">
-            Quiz Responses
+            {activityType === "exam" ? "Exam" : "Quiz"} Responses
           </p>
           <h1 className="text-sm font-semibold text-white truncate">
             Student Submissions
@@ -284,7 +298,7 @@ export default function QuizResponsesPage() {
           onClick={() => navigate(`/teacher/quizzes/${quizId}/edit`)}
           className="hidden sm:flex items-center gap-1.5 rounded-lg border border-amber-500/15 px-3 py-1.5 text-xs text-muted-foreground hover:bg-stone-900/70 transition-colors"
         >
-          Back to editor
+          Back to {activityType === "exam" ? "exam" : "quiz"} editor
         </button>
       </header>
 
@@ -332,8 +346,9 @@ export default function QuizResponsesPage() {
                 >
                   <ClipboardCheck className="h-4 w-4 text-violet-400 shrink-0" />
                   <p className="text-sm text-violet-300">
-                    This quiz has questions that require manual grading. Expand
-                    a student's row to review their response and assign points.
+                    This {activityType} has questions that require manual
+                    grading. Expand a student's row to review their response and
+                    assign points.
                   </p>
                 </div>
               )}
@@ -346,7 +361,7 @@ export default function QuizResponsesPage() {
                     No responses yet
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    Students haven't submitted this quiz.
+                    Students haven't submitted this {activityType}.
                   </p>
                 </div>
               ) : (

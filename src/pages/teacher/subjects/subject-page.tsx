@@ -8,6 +8,7 @@ import {
   ClipboardList,
   ExternalLink,
   FileText,
+  GraduationCap,
   Pencil,
   Plus,
   Trash2,
@@ -56,6 +57,7 @@ import {
   uploadMaterial,
 } from "@/lib/api/eduverse";
 import { useAuth } from "@/providers/auth-provider";
+import { StudentsTab } from "@/pages/teacher/subjects/subject-students-tab";
 
 // ─── Colour palette cycled per subject card ───────────────────────────────────
 
@@ -545,6 +547,7 @@ function SubjectDetailView({ subjectId }: { subjectId: string }) {
   const [activeComposer, setActiveComposer] = useState<
     "activity" | "material" | null
   >(null);
+  const [activeTab, setActiveTab] = useState<"content" | "students">("content");
 
   // ── Activity create form ──────────────────────────────────────────────────
   const [activityTitle, setActivityTitle] = useState("");
@@ -592,12 +595,16 @@ function SubjectDetailView({ subjectId }: { subjectId: string }) {
     [subjectId, subjects],
   );
 
-  const nextDueActivity = useMemo(
-    () =>
-      activities.find((a) => {
-        if (!a.due_date) return false;
-        return new Date(a.due_date).getTime() >= Date.now();
-      }),
+  const assignmentActivities = useMemo(
+    () => activities.filter((a) => a.type !== "quiz" && a.type !== "exam"),
+    [activities],
+  );
+  const quizActivities = useMemo(
+    () => activities.filter((a) => a.type === "quiz"),
+    [activities],
+  );
+  const examActivities = useMemo(
+    () => activities.filter((a) => a.type === "exam"),
     [activities],
   );
 
@@ -769,393 +776,481 @@ function SubjectDetailView({ subjectId }: { subjectId: string }) {
         </p>
       </div>
 
-      {/* Stats */}
-      <div className="mb-6 grid gap-4 grid-cols-2 md:grid-cols-3">
-        <StatCard
-          title="Materials"
-          value={loadingPosts ? "..." : materials.length}
-          accent="emerald"
-        />
-        <StatCard
-          title="Activities"
-          value={loadingPosts ? "..." : activities.length}
-          accent="violet"
-        />
-        <StatCard
-          title="Next due"
-          value={
-            loadingPosts
-              ? "..."
-              : nextDueActivity?.due_date
-                ? nextDueActivity.due_date
-                : "None"
-          }
-          accent="sky"
-        />
+      {/* Tab bar */}
+      <div className="mb-6 flex gap-1 rounded-xl border border-amber-500/10 bg-stone-950/60 p-1 w-fit">
+        <button
+          type="button"
+          onClick={() => setActiveTab("content")}
+          className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+            activeTab === "content"
+              ? "bg-amber-500 text-white shadow-sm"
+              : "text-muted-foreground hover:text-slate-200"
+          }`}
+        >
+          <BookOpen className="h-4 w-4" />
+          Content
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("students")}
+          className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+            activeTab === "students"
+              ? "bg-amber-500 text-white shadow-sm"
+              : "text-muted-foreground hover:text-slate-200"
+          }`}
+        >
+          <GraduationCap className="h-4 w-4" />
+          Students
+        </button>
       </div>
 
-      {/* Status toast */}
-      {status ? (
-        <div className="mb-6 flex items-center gap-2 rounded-xl bg-emerald-400/10 px-4 py-3 text-sm font-medium text-emerald-700">
-          <CheckCircle2 className="h-4 w-4" />
-          {status}
-        </div>
-      ) : null}
+      {/* ── Content tab ─────────────────────────────────────────────────────── */}
+      {activeTab === "content" && (
+        <>
+          {/* Stats */}
+          <div className="mb-6 grid gap-4 grid-cols-2 md:grid-cols-4">
+            <StatCard
+              title="Materials"
+              value={loadingPosts ? "..." : materials.length}
+              accent="emerald"
+            />
+            <StatCard
+              title="Activities"
+              value={loadingPosts ? "..." : assignmentActivities.length}
+              accent="violet"
+            />
+            <StatCard
+              title="Quizzes"
+              value={loadingPosts ? "..." : quizActivities.length}
+              accent="indigo"
+            />
+            <StatCard
+              title="Exams"
+              value={loadingPosts ? "..." : examActivities.length}
+              accent="sky"
+            />
+          </div>
 
-      {/* Composer toggle buttons */}
-      <div className="mb-6 flex flex-wrap gap-2">
-        <Button
-          type="button"
-          variant={activeComposer === "activity" ? "default" : "outline"}
-          onClick={() =>
-            setActiveComposer((c) => (c === "activity" ? null : "activity"))
-          }
-        >
-          <ClipboardList className="mr-2 h-4 w-4" />
-          Create activity
-        </Button>
-        <Button
-          type="button"
-          variant={activeComposer === "material" ? "default" : "outline"}
-          onClick={() =>
-            setActiveComposer((c) => (c === "material" ? null : "material"))
-          }
-        >
-          <FileText className="mr-2 h-4 w-4" />
-          Upload material
-        </Button>
-      </div>
+          {/* Status toast */}
+          {status ? (
+            <div className="mb-6 flex items-center gap-2 rounded-xl bg-emerald-400/10 px-4 py-3 text-sm font-medium text-emerald-700">
+              <CheckCircle2 className="h-4 w-4" />
+              {status}
+            </div>
+          ) : null}
 
-      {/* ── Activity composer ─────────────────────────────────────────────────── */}
-      {activeComposer === "activity" && (
-        <div className="mb-6">
-          <Card>
-            <div className="h-1 bg-linear-to-r from-indigo-500 to-violet-500" />
-            <CardHeader>
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <ClipboardList className="h-5 w-5 text-amber-600" />
-                    Create Activity
-                  </CardTitle>
-                  <CardDescription>
-                    Post a due task for this subject.
-                  </CardDescription>
-                </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setActiveComposer(null)}
-                  className="h-8 w-8 px-0"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <form className="space-y-3" onSubmit={onCreateActivity}>
-                <Input
-                  value={activityTitle}
-                  onChange={(e) => setActivityTitle(e.target.value)}
-                  placeholder="Activity title"
-                  required
-                />
-                <Textarea
-                  value={activityInstructions}
-                  onChange={(e) => setActivityInstructions(e.target.value)}
-                  placeholder="Instructions"
-                  rows={3}
-                />
-                <Input
-                  value={activityDate}
-                  onChange={(e) => setActivityDate(e.target.value)}
-                  type="date"
-                  required
-                />
-                <FileDropZone
-                  id="activity-file-input"
-                  file={activityFile}
-                  onFile={setActivityFile}
-                  dragging={activityDragging}
-                  onDragOver={(e) => {
-                    e.preventDefault();
-                    setActivityDragging(true);
-                  }}
-                  onDragLeave={() => setActivityDragging(false)}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    setActivityDragging(false);
-                    const f = e.dataTransfer.files?.[0];
-                    if (f) setActivityFile(f);
-                  }}
-                />
-                <div className="flex items-center gap-3">
-                  {activityFile && (
-                    <button
+          {/* Composer toggle buttons */}
+          <div className="mb-6 flex flex-wrap gap-2">
+            <Button
+              type="button"
+              variant={activeComposer === "activity" ? "default" : "outline"}
+              onClick={() =>
+                setActiveComposer((c) => (c === "activity" ? null : "activity"))
+              }
+            >
+              <ClipboardList className="mr-2 h-4 w-4" />
+              Create activity
+            </Button>
+            <Button
+              type="button"
+              variant={activeComposer === "material" ? "default" : "outline"}
+              onClick={() =>
+                setActiveComposer((c) => (c === "material" ? null : "material"))
+              }
+            >
+              <FileText className="mr-2 h-4 w-4" />
+              Upload material
+            </Button>
+          </div>
+
+          {/* ── Activity composer ─────────────────────────────────────────────────── */}
+          {activeComposer === "activity" && (
+            <div className="mb-6">
+              <Card>
+                <div className="h-1 bg-linear-to-r from-indigo-500 to-violet-500" />
+                <CardHeader>
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <CardTitle className="flex items-center gap-2">
+                        <ClipboardList className="h-5 w-5 text-amber-600" />
+                        Create Activity
+                      </CardTitle>
+                      <CardDescription>
+                        Post a due task for this subject.
+                      </CardDescription>
+                    </div>
+                    <Button
                       type="button"
-                      onClick={() => setActivityFile(null)}
-                      className="text-xs text-rose-500 hover:underline"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setActiveComposer(null)}
+                      className="h-8 w-8 px-0"
                     >
-                      Remove file
-                    </button>
-                  )}
-
-                  <Button type="submit">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Post activity
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {/* ── Material composer ─────────────────────────────────────────────────── */}
-      {activeComposer === "material" && (
-        <div className="mb-6">
-          <Card>
-            <div className="h-1 bg-linear-to-r from-emerald-500 to-sky-500" />
-            <CardHeader>
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-5 w-5 text-emerald-600" />
-                    Upload Material
-                  </CardTitle>
-                  <CardDescription>
-                    Share a file with students in this subject.
-                  </CardDescription>
-                </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setActiveComposer(null)}
-                  className="h-8 w-8 px-0"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <form className="space-y-3" onSubmit={onUploadMaterial}>
-                <Input
-                  value={materialTitle}
-                  onChange={(e) => setMaterialTitle(e.target.value)}
-                  placeholder="Material title"
-                  required
-                />
-                <Textarea
-                  value={materialDescription}
-                  onChange={(e) => setMaterialDescription(e.target.value)}
-                  placeholder="Description (optional)"
-                  rows={3}
-                />
-                <FileDropZone
-                  id="material-file-input"
-                  file={materialFile}
-                  onFile={setMaterialFile}
-                  dragging={materialDragging}
-                  onDragOver={(e) => {
-                    e.preventDefault();
-                    setMaterialDragging(true);
-                  }}
-                  onDragLeave={() => setMaterialDragging(false)}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    setMaterialDragging(false);
-                    const f = e.dataTransfer.files?.[0];
-                    if (f) setMaterialFile(f);
-                  }}
-                />
-                <Button type="submit" disabled={!materialFile}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Upload material
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {/* ── Materials + Activities grid ───────────────────────────────────────── */}
-      <div className="grid gap-6 xl:grid-cols-2">
-        {/* Materials */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BookOpen className="h-5 w-5 text-emerald-600" />
-              Posted Materials
-            </CardTitle>
-            <CardDescription>
-              Resources currently available in this subject.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {loadingPosts ? (
-              <div className="space-y-3">
-                {[1, 2].map((n) => (
-                  <div
-                    key={n}
-                    className="h-24 animate-pulse rounded-xl bg-slate-900/65"
-                  />
-                ))}
-              </div>
-            ) : materials.length === 0 ? (
-              <p className="rounded-xl border border-dashed border-emerald-200 bg-slate-900/65 p-4 text-sm text-muted-foreground">
-                No materials uploaded yet.
-              </p>
-            ) : (
-              materials.map((material) => (
-                <ListItemCard key={material.id}>
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate font-medium">{material.title}</p>
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        {material.description}
-                      </p>
-                    </div>
-                    <div className="flex shrink-0 items-center gap-2">
-                      {material.file_url && (
-                        <a
-                          href={material.file_url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex items-center text-sm font-medium text-amber-600 hover:underline"
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <form className="space-y-3" onSubmit={onCreateActivity}>
+                    <Input
+                      value={activityTitle}
+                      onChange={(e) => setActivityTitle(e.target.value)}
+                      placeholder="Activity title"
+                      required
+                    />
+                    <Textarea
+                      value={activityInstructions}
+                      onChange={(e) => setActivityInstructions(e.target.value)}
+                      placeholder="Instructions"
+                      rows={3}
+                    />
+                    <Input
+                      value={activityDate}
+                      onChange={(e) => setActivityDate(e.target.value)}
+                      type="date"
+                      required
+                    />
+                    <FileDropZone
+                      id="activity-file-input"
+                      file={activityFile}
+                      onFile={setActivityFile}
+                      dragging={activityDragging}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        setActivityDragging(true);
+                      }}
+                      onDragLeave={() => setActivityDragging(false)}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        setActivityDragging(false);
+                        const f = e.dataTransfer.files?.[0];
+                        if (f) setActivityFile(f);
+                      }}
+                    />
+                    <div className="flex items-center gap-3">
+                      {activityFile && (
+                        <button
+                          type="button"
+                          onClick={() => setActivityFile(null)}
+                          className="text-xs text-rose-500 hover:underline"
                         >
-                          Open
-                          <ExternalLink className="ml-1 h-3.5 w-3.5" />
-                        </a>
+                          Remove file
+                        </button>
                       )}
-                      <button
-                        type="button"
-                        onClick={() => openEditMaterial(material)}
-                        className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-slate-200 transition-colors"
-                        title="Edit material"
-                      >
-                        <Pencil className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setConfirmDelete({
-                            type: "material",
-                            id: material.id,
-                            label: material.title ?? "this material",
-                          })
-                        }
-                        className="rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-colors"
-                        title="Delete material"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                </ListItemCard>
-              ))
-            )}
-          </CardContent>
-        </Card>
 
-        {/* Activities */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CalendarDays className="h-5 w-5 text-violet-600" />
-              Posted Activities
-            </CardTitle>
-            <CardDescription>
-              Assignments and tasks posted for this subject.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {loadingPosts ? (
-              <div className="space-y-3">
-                {[1, 2].map((n) => (
-                  <div
-                    key={n}
-                    className="h-24 animate-pulse rounded-xl bg-slate-900/65"
-                  />
-                ))}
-              </div>
-            ) : activities.length === 0 ? (
-              <p className="rounded-xl border border-dashed border-violet-200 bg-slate-900/65 p-4 text-sm text-muted-foreground">
-                No activities posted yet.
-              </p>
-            ) : (
-              activities.map((activity) => (
-                <ListItemCard key={activity.id}>
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0 flex-1">
-                      <p className="font-medium">{activity.title}</p>
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        {activity.instructions}
-                      </p>
-                      <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                        <span className="rounded-full bg-violet-400/10 px-2.5 py-1 text-white-700">
-                          Due: {activity.due_date ?? "No due date"}
-                        </span>
-                        <span className="rounded-full bg-amber-400/10 px-2.5 py-1 text-white-700">
-                          {activity.points ?? 0} points
-                        </span>
-                        {activity.file_url && (
-                          <a
-                            href={activity.file_url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center rounded-full bg-amber-700 px-2.5 py-1 text-white-700 hover:underline"
-                          >
-                            Attachment
-                            <ExternalLink className="ml-1 h-3 w-3" />
-                          </a>
-                        )}
-                      </div>
+                      <Button type="submit">
+                        <Plus className="mr-2 h-4 w-4" />
+                        Post activity
+                      </Button>
                     </div>
-                    <div className="flex shrink-0 items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          navigate(
-                            `/teacher/activities/${activity.id}/responses`,
-                          )
-                        }
-                        className="rounded-lg p-1.5 text-slate-400 hover:bg-amber-400/10 hover:text-amber-600 transition-colors"
-                        title="View responses"
-                      >
-                        <ClipboardList className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => openEditActivity(activity)}
-                        className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-slate-200 transition-colors"
-                        title="Edit activity"
-                      >
-                        <Pencil className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setConfirmDelete({
-                            type: "activity",
-                            id: activity.id,
-                            label: activity.title ?? "this activity",
-                          })
-                        }
-                        className="rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-colors"
-                        title="Delete activity"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
+                  </form>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* ── Material composer ─────────────────────────────────────────────────── */}
+          {activeComposer === "material" && (
+            <div className="mb-6">
+              <Card>
+                <div className="h-1 bg-linear-to-r from-emerald-500 to-sky-500" />
+                <CardHeader>
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <CardTitle className="flex items-center gap-2">
+                        <FileText className="h-5 w-5 text-emerald-600" />
+                        Upload Material
+                      </CardTitle>
+                      <CardDescription>
+                        Share a file with students in this subject.
+                      </CardDescription>
                     </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setActiveComposer(null)}
+                      className="h-8 w-8 px-0"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
                   </div>
-                </ListItemCard>
-              ))
-            )}
-          </CardContent>
-        </Card>
-      </div>
+                </CardHeader>
+                <CardContent>
+                  <form className="space-y-3" onSubmit={onUploadMaterial}>
+                    <Input
+                      value={materialTitle}
+                      onChange={(e) => setMaterialTitle(e.target.value)}
+                      placeholder="Material title"
+                      required
+                    />
+                    <Textarea
+                      value={materialDescription}
+                      onChange={(e) => setMaterialDescription(e.target.value)}
+                      placeholder="Description (optional)"
+                      rows={3}
+                    />
+                    <FileDropZone
+                      id="material-file-input"
+                      file={materialFile}
+                      onFile={setMaterialFile}
+                      dragging={materialDragging}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        setMaterialDragging(true);
+                      }}
+                      onDragLeave={() => setMaterialDragging(false)}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        setMaterialDragging(false);
+                        const f = e.dataTransfer.files?.[0];
+                        if (f) setMaterialFile(f);
+                      }}
+                    />
+                    <Button type="submit" disabled={!materialFile}>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Upload material
+                    </Button>
+                  </form>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* ── Materials + Activities grid ───────────────────────────────────────── */}
+          <div className="grid gap-6 xl:grid-cols-2">
+            {/* Materials */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BookOpen className="h-5 w-5 text-emerald-600" />
+                  Posted Materials
+                </CardTitle>
+                <CardDescription>
+                  Resources currently available in this subject.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {loadingPosts ? (
+                  <div className="space-y-3">
+                    {[1, 2].map((n) => (
+                      <div
+                        key={n}
+                        className="h-24 animate-pulse rounded-xl bg-slate-900/65"
+                      />
+                    ))}
+                  </div>
+                ) : materials.length === 0 ? (
+                  <p className="rounded-xl border border-dashed border-emerald-200 bg-slate-900/65 p-4 text-sm text-muted-foreground">
+                    No materials uploaded yet.
+                  </p>
+                ) : (
+                  materials.map((material) => (
+                    <ListItemCard key={material.id}>
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate font-medium">
+                            {material.title}
+                          </p>
+                          <p className="mt-1 text-sm text-muted-foreground">
+                            {material.description}
+                          </p>
+                        </div>
+                        <div className="flex shrink-0 items-center gap-2">
+                          {material.file_url && (
+                            <a
+                              href={material.file_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center text-sm font-medium text-amber-600 hover:underline"
+                            >
+                              Open
+                              <ExternalLink className="ml-1 h-3.5 w-3.5" />
+                            </a>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => openEditMaterial(material)}
+                            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-slate-200 transition-colors"
+                            title="Edit material"
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setConfirmDelete({
+                                type: "material",
+                                id: material.id,
+                                label: material.title ?? "this material",
+                              })
+                            }
+                            className="rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-colors"
+                            title="Delete material"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    </ListItemCard>
+                  ))
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Activities (assignments) */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CalendarDays className="h-5 w-5 text-violet-600" />
+                  Posted Activities
+                </CardTitle>
+                <CardDescription>
+                  Assignments and tasks posted for this subject.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {loadingPosts ? (
+                  <div className="space-y-3">
+                    {[1, 2].map((n) => (
+                      <div
+                        key={n}
+                        className="h-24 animate-pulse rounded-xl bg-slate-900/65"
+                      />
+                    ))}
+                  </div>
+                ) : assignmentActivities.length === 0 ? (
+                  <p className="rounded-xl border border-dashed border-violet-200 bg-slate-900/65 p-4 text-sm text-muted-foreground">
+                    No activities posted yet.
+                  </p>
+                ) : (
+                  assignmentActivities.map((activity) => (
+                    <ActivityListItem
+                      key={activity.id}
+                      activity={activity}
+                      onResponses={() =>
+                        navigate(`/teacher/activities/${activity.id}/responses`)
+                      }
+                      onEdit={() => openEditActivity(activity)}
+                      onDelete={() =>
+                        setConfirmDelete({
+                          type: "activity",
+                          id: activity.id,
+                          label: activity.title ?? "this activity",
+                        })
+                      }
+                    />
+                  ))
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* ── Quizzes + Exams full-width row ───────────────────────────────────── */}
+          <div className="mt-6 grid gap-6 xl:grid-cols-2">
+            {/* Quizzes */}
+            <Card>
+              <div className="h-1 bg-linear-to-r from-amber-500 to-yellow-500" />
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ClipboardList className="h-5 w-5 text-amber-600" />
+                  Quizzes
+                </CardTitle>
+                <CardDescription>
+                  Quiz-type assessments posted for this subject.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {loadingPosts ? (
+                  <div className="space-y-3">
+                    {[1, 2].map((n) => (
+                      <div
+                        key={n}
+                        className="h-24 animate-pulse rounded-xl bg-slate-900/65"
+                      />
+                    ))}
+                  </div>
+                ) : quizActivities.length === 0 ? (
+                  <p className="rounded-xl border border-dashed border-amber-500/20 bg-slate-900/65 p-4 text-sm text-muted-foreground">
+                    No quizzes posted yet.
+                  </p>
+                ) : (
+                  quizActivities.map((activity) => (
+                    <ActivityListItem
+                      key={activity.id}
+                      activity={activity}
+                      accentColor="amber"
+                      onResponses={() =>
+                        navigate(`/teacher/quizzes/${activity.id}/responses`)
+                      }
+                      onEdit={() => openEditActivity(activity)}
+                      onDelete={() =>
+                        setConfirmDelete({
+                          type: "activity",
+                          id: activity.id,
+                          label: activity.title ?? "this quiz",
+                        })
+                      }
+                    />
+                  ))
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Exams */}
+            <Card>
+              <div className="h-1 bg-linear-to-r from-rose-500 to-pink-500" />
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ClipboardList className="h-5 w-5 text-rose-600" />
+                  Exams
+                </CardTitle>
+                <CardDescription>
+                  Exam-type assessments posted for this subject.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {loadingPosts ? (
+                  <div className="space-y-3">
+                    {[1, 2].map((n) => (
+                      <div
+                        key={n}
+                        className="h-24 animate-pulse rounded-xl bg-slate-900/65"
+                      />
+                    ))}
+                  </div>
+                ) : examActivities.length === 0 ? (
+                  <p className="rounded-xl border border-dashed border-rose-500/20 bg-slate-900/65 p-4 text-sm text-muted-foreground">
+                    No exams posted yet.
+                  </p>
+                ) : (
+                  examActivities.map((activity) => (
+                    <ActivityListItem
+                      key={activity.id}
+                      activity={activity}
+                      accentColor="rose"
+                      onResponses={() =>
+                        navigate(`/teacher/quizzes/${activity.id}/responses`)
+                      }
+                      onEdit={() => openEditActivity(activity)}
+                      onDelete={() =>
+                        setConfirmDelete({
+                          type: "activity",
+                          id: activity.id,
+                          label: activity.title ?? "this exam",
+                        })
+                      }
+                    />
+                  ))
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </>
+      )}
+
+      {/* ── Students tab ────────────────────────────────────────────────────── */}
+      {activeTab === "students" && <StudentsTab subjectId={subjectId} />}
 
       {/* ── Edit activity dialog ──────────────────────────────────────────────── */}
       <Dialog
@@ -1478,5 +1573,105 @@ function SubjectDetailView({ subjectId }: { subjectId: string }) {
         </DialogContent>
       </Dialog>
     </AppShell>
+  );
+}
+
+// ─── ActivityListItem ─────────────────────────────────────────────────────────
+
+type ActivityAccent = "violet" | "amber" | "rose";
+
+const activityAccentStyles: Record<
+  ActivityAccent,
+  { responses: string; due: string; points: string }
+> = {
+  violet: {
+    responses: "hover:bg-amber-400/10 hover:text-amber-600",
+    due: "bg-violet-400/10 text-violet-300",
+    points: "bg-amber-400/10 text-amber-300",
+  },
+  amber: {
+    responses: "hover:bg-amber-400/10 hover:text-amber-600",
+    due: "bg-amber-400/10 text-amber-300",
+    points: "bg-yellow-400/10 text-yellow-300",
+  },
+  rose: {
+    responses: "hover:bg-rose-400/10 hover:text-rose-500",
+    due: "bg-rose-400/10 text-rose-300",
+    points: "bg-pink-400/10 text-pink-300",
+  },
+};
+
+function ActivityListItem({
+  activity,
+  accentColor = "violet",
+  onResponses,
+  onEdit,
+  onDelete,
+}: {
+  activity: Activity;
+  accentColor?: ActivityAccent;
+  onResponses: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  const s = activityAccentStyles[accentColor];
+  return (
+    <ListItemCard>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="font-medium">{activity.title}</p>
+          {activity.instructions && (
+            <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
+              {activity.instructions}
+            </p>
+          )}
+          <div className="mt-3 flex flex-wrap gap-2 text-xs">
+            <span className={`rounded-full px-2.5 py-1 ${s.due}`}>
+              Due: {activity.due_date ?? "No due date"}
+            </span>
+            <span className={`rounded-full px-2.5 py-1 ${s.points}`}>
+              {activity.points ?? 0} pts
+            </span>
+            {activity.file_url && (
+              <a
+                href={activity.file_url}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center rounded-full bg-slate-800 px-2.5 py-1 text-slate-300 hover:underline"
+              >
+                Attachment
+                <ExternalLink className="ml-1 h-3 w-3" />
+              </a>
+            )}
+          </div>
+        </div>
+        <div className="flex shrink-0 items-center gap-1">
+          <button
+            type="button"
+            onClick={onResponses}
+            className={`rounded-lg p-1.5 text-slate-400 transition-colors ${s.responses}`}
+            title="View responses"
+          >
+            <ClipboardList className="h-3.5 w-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={onEdit}
+            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-slate-200 transition-colors"
+            title="Edit"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={onDelete}
+            className="rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-colors"
+            title="Delete"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      </div>
+    </ListItemCard>
   );
 }

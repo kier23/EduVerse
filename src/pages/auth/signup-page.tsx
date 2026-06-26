@@ -12,6 +12,7 @@ const signupRoles: SignupRole[] = ["teacher", "student"];
 
 export function SignupPage() {
   const [fullName, setFullName] = useState("");
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -35,12 +36,21 @@ export function SignupPage() {
       return;
     }
 
+    // Basic username validation
+    if (!/^[a-zA-Z0-9_]{3,20}$/.test(username)) {
+      setError(
+        "Username must be 3–20 characters and contain only letters, numbers, or underscores.",
+      );
+      setSubmitting(false);
+      return;
+    }
+
     try {
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: { full_name: fullName, role },
+          data: { full_name: fullName, role, username },
         },
       });
       console.log("Signup data:", data);
@@ -50,6 +60,19 @@ export function SignupPage() {
         throw signUpError;
       }
       if (!data.user) throw new Error("Account could not be created.");
+
+      // Persist username to the users table so login-by-username lookup works.
+      const { error: upsertError } = await supabase.from("users").upsert(
+        {
+          id: data.user.id,
+          email,
+          full_name: fullName,
+          role,
+          username,
+        },
+        { onConflict: "id" },
+      );
+      if (upsertError) console.error("Failed to save username:", upsertError);
 
       if (data.session) {
         navigate(dashboardPathForRole(role));
@@ -76,6 +99,13 @@ export function SignupPage() {
           placeholder="Full name"
           value={fullName}
           onChange={(event) => setFullName(event.target.value)}
+          required
+        />
+        <Input
+          placeholder="Username (e.g. kier_edu)"
+          value={username}
+          onChange={(event) => setUsername(event.target.value)}
+          autoComplete="username"
           required
         />
         <Input

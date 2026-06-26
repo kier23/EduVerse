@@ -51,6 +51,7 @@ export type UserProfile = {
   avatar_url: string | null;
 };
 
+export type ActivityType = "quiz" | "exam" | "assignment" | "project";
 
 export type QuestionType =
   | "multiple_choice"
@@ -136,6 +137,7 @@ export type QuizWithActivity = Quiz & {
     due_date: string | null;
     points: number | null;
     subject_id: string;
+    type: string | null;
     subject?: { subject_name: string | null };
   } | null;
   question_count?: number;
@@ -530,7 +532,7 @@ export async function fetchTeacherQuizzes(teacherId: string): Promise<QuizWithAc
     .select(`
       *,
       activity:activities(
-        id, title, due_date, points, subject_id,
+        id, title, due_date, points, subject_id, type,
         subject:subjects(subject_name)
       )
     `)
@@ -567,6 +569,14 @@ export async function fetchTeacherQuizzes(teacherId: string): Promise<QuizWithAc
   const allowedIds = new Set((teacherActivityIds.data ?? []).map((a) => a.id));
  
   return enriched.filter((q) => q.activity && allowedIds.has(q.activity.id));
+}
+
+export async function fetchTeacherQuizzesByType(
+  teacherId: string,
+  activityType: ActivityType,
+): Promise<QuizWithActivity[]> {
+  const all = await fetchTeacherQuizzes(teacherId);
+  return all.filter((q) => q.activity?.type === activityType);
 }
  
 export async function fetchQuizById(quizId: string): Promise<{
@@ -650,6 +660,7 @@ export async function createActivityAndQuiz(payload: {
   instructions: string;
   due_date: string;
   points: number;
+  activityType?: ActivityType;
 }): Promise<{ activity_id: string; quiz_id: string }> {
   const { data: activity, error: actErr } = await supabase
     .from("activities")
@@ -658,7 +669,7 @@ export async function createActivityAndQuiz(payload: {
       subject_id: payload.subject_id,
       title: payload.title,
       instructions: payload.instructions,
-      type: "quiz",
+      type: payload.activityType ?? "quiz",
       due_date: payload.due_date,
       points: payload.points,
     })
@@ -1029,4 +1040,57 @@ export async function uploadQuizBanner(quizId: string, file: File): Promise<stri
  
   const { data } = supabase.storage.from("quiz-media").getPublicUrl(filePath);
   return data.publicUrl;
+}
+
+// ─── Enrollment types & functions ────────────────────────────────────────────
+// Add these to eduverse.ts
+
+export type EnrolledStudent = {
+  enrollment_id: string;
+  enrolled_at: string | null;
+  student: {
+    id: string;
+    full_name: string | null;
+    email: string | null;
+    avatar_url: string | null;
+  };
+};
+
+/**
+ * Fetches all students enrolled in a subject, joined with their user profile.
+ */
+export async function fetchEnrolledStudents(subjectId: string): Promise<EnrolledStudent[]> {
+  const { data, error } = await supabase
+    .from("enrollments")
+    .select(`
+      id,
+      enrolled_at,
+      student_id (
+        id,
+        full_name,
+        email,
+        avatar_url
+      )
+    `)
+    .eq("subject_id", subjectId)
+    .order("enrolled_at", { ascending: false });
+
+  if (error) throw error;
+
+  return ((data ?? []) as any[]).map((row) => ({
+    enrollment_id: row.id,
+    enrolled_at: row.enrolled_at,
+    student: row.student_id,
+  }));
+}
+
+/**
+ * Removes a student's enrollment from a subject by enrollment row id.
+ */
+export async function unenrollStudent(enrollmentId: string): Promise<void> {
+  const { error } = await supabase
+    .from("enrollments")
+    .delete()
+    .eq("id", enrollmentId);
+  if (error) throw error;
 }
