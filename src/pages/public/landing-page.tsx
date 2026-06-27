@@ -42,7 +42,7 @@ function StudentIcon() {
   );
 }
 
-// ── Sidebar ───────────────────────────────────────────────────────────────────
+// ── Role data ─────────────────────────────────────────────────────────────────
 
 const roles = [
   {
@@ -62,9 +62,11 @@ const roles = [
   },
 ];
 
+// ── Desktop Sidebar ───────────────────────────────────────────────────────────
+
 function Sidebar() {
   return (
-    <aside className="flex w-64 shrink-0 flex-col items-center border-r border-white/10 bg-black/40 px-5 py-8 backdrop-blur-md">
+    <aside className="hidden lg:flex w-64 shrink-0 flex-col items-center border-r border-white/10 bg-black/40 px-5 py-8 backdrop-blur-md">
       {/* Logo */}
       <div className="mb-8 flex h-24 w-24 items-center justify-center rounded-full border-2 border-amber-600/40 shadow-[0_0_24px_rgba(245,158,11,0.18)] overflow-hidden">
         <img
@@ -107,15 +109,35 @@ function Sidebar() {
   );
 }
 
+// ── Mobile top bar (logo + school name) ──────────────────────────────────────
+
+function MobileTopBar() {
+  return (
+    <div className="flex lg:hidden items-center gap-3 border-b border-white/10 bg-black/50 px-4 py-3 backdrop-blur-md">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-amber-600/40 shadow-[0_0_12px_rgba(245,158,11,0.18)] overflow-hidden">
+        <img
+          src="/logo/school-logo.png"
+          alt="Barotuan National High School Logo"
+          className="h-full w-full object-cover"
+        />
+      </div>
+      <div className="min-w-0">
+        <p className="truncate text-xs font-bold uppercase tracking-wider text-stone-100 leading-tight">
+          Barotuan National High School
+        </p>
+        <p className="truncate text-[10px] uppercase tracking-wider text-stone-400 leading-tight">
+          Learning Management System
+        </p>
+      </div>
+    </div>
+  );
+}
+
 // ── Header bar ────────────────────────────────────────────────────────────────
 
 function HeaderBar() {
   return (
-    <header className="flex shrink-0 items-center gap-4 border-b border-white/10 bg-black/30 px-10 py-5 backdrop-blur-md">
-      {/* <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-600/30 bg-amber-500/10 px-6 py-3 text-[20px] font-semibold uppercase tracking-widest text-amber-400">
-        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-400" />
-        LMS
-      </span> */}
+    <header className="hidden lg:flex shrink-0 items-center gap-4 border-b border-white/10 bg-black/30 px-10 py-5 backdrop-blur-md">
       <div>
         <h1 className="text-[25px] font-bold uppercase tracking-widest text-stone-100 leading-tight">
           Barotuan National High School
@@ -125,6 +147,39 @@ function HeaderBar() {
         </h1>
       </div>
     </header>
+  );
+}
+
+// ── Mobile role cards strip ───────────────────────────────────────────────────
+
+function MobileRoleCards() {
+  return (
+    <div className="flex lg:hidden w-full flex-col gap-2 px-4 pb-4">
+      <p className="mb-1 text-[10px] font-semibold uppercase tracking-widest text-stone-500">
+        Who uses EduVerse
+      </p>
+      <div className="grid grid-cols-3 gap-2">
+        {roles.map(({ label, Icon, desc }) => (
+          <Card
+            key={label}
+            className="border-amber-900/30 bg-white/[0.05] backdrop-blur-sm"
+          >
+            <CardContent className="flex flex-col items-center gap-1.5 p-3 text-center">
+              <span className="flex h-7 w-7 items-center justify-center rounded-md bg-amber-500/10">
+                <Icon />
+              </span>
+              <p className="text-xs font-semibold text-amber-400">{label}</p>
+              <p className="text-[10px] leading-relaxed text-stone-400">
+                {desc}
+              </p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+      <p className="mt-2 text-center text-[10px] leading-5 text-stone-600">
+        EduVerse LMS · © 2025 BNHS
+      </p>
+    </div>
   );
 }
 
@@ -145,45 +200,53 @@ export function LandingPage() {
 
       {/* Content layer */}
       <div className="relative flex h-full w-full">
+        {/* Desktop sidebar */}
         <Sidebar />
 
-        {/* Right panel */}
+        {/* Right panel (full width on mobile) */}
         <div className="flex flex-1 flex-col overflow-hidden">
+          {/* Mobile top bar — visible only on < lg */}
+          <MobileTopBar />
+
+          {/* Desktop header bar — visible only on lg+ */}
           <HeaderBar />
 
           {/* Hero */}
-          <main className="flex flex-1 flex-col items-center justify-center p-8 text-center">
-            {/* <p className="mb-5 text-[11px] font-semibold uppercase tracking-[0.14em] text-amber-400">
-              EduVerse Subject Manager
-            </p> */}
-
-            <h1 className="mb-5 max-w-2xl text-4xl font-extrabold leading-tight tracking-tight text-white md:text-5xl">
+          <main className="flex flex-1 flex-col items-center justify-center px-5 py-8 text-center overflow-y-auto">
+            <h1 className="mb-4 max-w-2xl text-3xl font-extrabold leading-tight tracking-tight text-white sm:text-4xl md:text-5xl">
               Manage Classes, Materials, and Activities{" "}
               <span className="bg-gradient-to-r from-amber-400 to-amber-600 bg-clip-text text-transparent">
                 in One Place
               </span>
             </h1>
 
-            <p className="mb-10 max-w-xl text-base leading-relaxed text-stone-300">
+            <p className="mb-8 max-w-sm text-sm leading-relaxed text-stone-300 sm:max-w-xl sm:text-base">
               A teacher/student portal for analytics, subject management,
               scheduling, and learning progress.
             </p>
 
             {/* CTA buttons */}
             <div className="flex flex-wrap justify-center gap-3">
-              <Link to="/login" className={cn(buttonVariants({ size: "lg" }))}>
+              <Link
+                to="/login"
+                className={cn(buttonVariants({ size: "lg" }), "min-w-[120px]")}
+              >
                 Log in
               </Link>
               <Link
                 to="/signup"
                 className={cn(
                   buttonVariants({ variant: "outline", size: "lg" }),
+                  "min-w-[120px]",
                 )}
               >
                 Sign up
               </Link>
             </div>
           </main>
+
+          {/* Mobile role cards — below hero, hidden on lg+ */}
+          <MobileRoleCards />
         </div>
       </div>
     </div>
