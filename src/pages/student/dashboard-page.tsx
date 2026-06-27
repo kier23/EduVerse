@@ -183,7 +183,7 @@ export function StudentDashboardPage() {
           )}
         </div>
 
-        <span className="text-sm text-muted-foreground">
+        <span className="text-sm text-stone-800">
           {loading ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (

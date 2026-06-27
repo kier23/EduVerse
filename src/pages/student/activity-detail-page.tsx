@@ -272,9 +272,9 @@ export function ActivityDetailPage() {
         <button
           type="button"
           onClick={() => navigate(-1)}
-          className="mb-4 inline-flex items-center text-sm font-medium text-muted-foreground hover:text-amber-600 transition-colors"
+          className="mb-4 inline-flex items-center text-sm font-medium text-stone-800 hover:text-amber-600 transition-colors"
         >
-          <ArrowLeft className="mr-2 h-4 w-4" />
+          <ArrowLeft className="mr-2 h-4 w-4 text-stone-800" />
           Back
         </button>
 
@@ -300,7 +300,7 @@ export function ActivityDetailPage() {
                 </span>
               )}
             </div>
-            <h1 className="text-lg sm:text-xl font-bold text-white">
+            <h1 className="text-lg sm:text-xl font-bold text-stone-900">
               {activity?.title}
             </h1>
           </>

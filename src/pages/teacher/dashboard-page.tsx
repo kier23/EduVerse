@@ -1,6 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, BookOpen, CalendarDays, ClipboardList, Plus } from "lucide-react";
+import {
+  ArrowRight,
+  BookOpen,
+  CalendarDays,
+  ClipboardList,
+  Plus,
+} from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import {
   Card,
@@ -29,7 +35,9 @@ type SubjectPostCounts = {
 export function TeacherDashboardPage() {
   const { profile, user } = useAuth();
   const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [postCounts, setPostCounts] = useState<Record<string, SubjectPostCounts>>({});
+  const [postCounts, setPostCounts] = useState<
+    Record<string, SubjectPostCounts>
+  >({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -93,15 +101,22 @@ export function TeacherDashboardPage() {
 
   return (
     <AppShell title="Teacher Dashboard">
-      <p className="mb-6 text-base font-medium text-slate-200">
-        Welcome! {profile?.full_name ?? user?.user_metadata?.full_name ?? user?.email ?? "Teacher"}
+      <p className="mb-6 text-base font-medium text-stone-950">
+        Welcome!{" "}
+        {profile?.full_name ??
+          user?.user_metadata?.full_name ??
+          user?.email ??
+          "Teacher"}
       </p>
 
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-xl font-semibold tracking-tight">Subjects</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Open a subject to post materials, create activities, and review what students can see.
+          <h2 className="text-xl font-semibold tracking-tight text-stone-800">
+            Subjects
+          </h2>
+          <p className="mt-1 text-sm text-stone-500">
+            Open a subject to post materials, create activities, and review what
+            students can see.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -162,7 +177,8 @@ export function TeacherDashboardPage() {
               <BookOpen className="mx-auto h-8 w-8 text-amber-500" />
               <p className="mt-3 font-medium">No subjects yet</p>
               <p className="mt-1 text-sm text-muted-foreground">
-                Create your first subject, then it will appear here and in the sidebar.
+                Create your first subject, then it will appear here and in the
+                sidebar.
               </p>
               <Link
                 to="/teacher/subjects"

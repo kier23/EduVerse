@@ -276,7 +276,7 @@ function SubjectListView() {
             </button>
           )}
         </div>
-        <span className="text-sm text-muted-foreground">
+        <span className="text-sm text-stone-800">
           {loading ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
@@ -763,15 +763,15 @@ function SubjectDetailView({ subjectId }: { subjectId: string }) {
       <div className="mb-6">
         <Link
           to="/teacher/subjects"
-          className="mb-3 inline-flex items-center text-sm font-medium text-muted-foreground hover:text-amber-600"
+          className="mb-3 inline-flex items-center text-sm font-medium text-stone-800 hover:text-amber-600"
         >
-          <ArrowLeft className="mr-2 h-4 w-4" />
+          <ArrowLeft className="mr-2 h-4 w-4 text-stone-800" />
           Back to subjects
         </Link>
         <p className="text-sm font-semibold uppercase tracking-wider text-amber-600">
           {subject?.subject_code ?? "Loading subject"}
         </p>
-        <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
+        <p className="mt-2 max-w-3xl text-sm text-stone-800">
           {subject?.description ?? "Manage posted materials and activities."}
         </p>
       </div>

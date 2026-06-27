@@ -177,9 +177,9 @@ export function StudentSubjectPage() {
         <button
           type="button"
           onClick={() => navigate("/student/dashboard")}
-          className="mb-3 inline-flex items-center text-sm font-medium text-muted-foreground hover:text-amber-600 transition-colors"
+          className="mb-3 inline-flex items-center text-sm font-medium text-stone-800 hover:text-amber-600 transition-colors"
         >
-          <ArrowLeft className="mr-2 h-4 w-4" />
+          <ArrowLeft className="mr-2 h-4 w-4 text-stone-800" />
           Back to dashboard
         </button>
 
@@ -193,11 +193,11 @@ export function StudentSubjectPage() {
             <p className="text-sm font-semibold uppercase tracking-wider text-amber-600">
               {subject?.subject_code}
             </p>
-            <h1 className="mt-1 text-lg sm:text-xl font-bold text-white">
+            <h1 className="mt-1 text-lg sm:text-xl font-bold text-stone-900">
               {subject?.subject_name}
             </h1>
             {subject?.description && (
-              <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+              <p className="mt-1 max-w-2xl text-sm text-stone-800">
                 {subject.description}
               </p>
             )}

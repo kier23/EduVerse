@@ -26,7 +26,6 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { GradientBackground } from "@/components/layout/gradient-background";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/providers/auth-provider";
 import { supabase } from "@/lib/supabase";
@@ -469,8 +468,19 @@ export function AppShell({
   );
 
   return (
-    <GradientBackground>
-      <div className="min-h-screen">
+    <div
+      className="relative bg-white"
+      style={{
+        backgroundImage: `url('/logo/school-logo.png')`,
+        backgroundRepeat: "no-repeat",
+        backgroundPosition: "center center",
+        backgroundSize: "130vh",
+        backgroundAttachment: "fixed",
+      }}
+    >
+      {/* Light overlay to keep readability while letting logo show through */}
+      <div className="fixed inset-0 bg-white/85 pointer-events-none z-0" />
+      <div className="relative z-10 min-h-screen">
         {/* ── Mobile overlay backdrop ─────────────────────────────────────── */}
         {mobileOpen && (
           <div
@@ -528,7 +538,7 @@ export function AppShell({
         <aside
           className={cn(
             "fixed left-6 top-6 mt-6 hidden h-[calc(100vh-3rem)] rounded-3xl border border-amber-500/15 bg-stone-950/75 shadow-xl shadow-amber-500/5 backdrop-blur-xl lg:flex lg:flex-col transition-all duration-300 z-50",
-            isCollapsed ? "w-[5.5rem] px-3 py-5" : "w-[18rem] px-5 py-5",
+            isCollapsed ? "w-22 px-3 py-5" : "w-[18rem] px-5 py-5",
           )}
         >
           {/* Logo */}
@@ -765,7 +775,7 @@ export function AppShell({
         <main
           className={cn(
             "min-h-screen w-full p-4 md:p-6 lg:p-10 transition-all duration-300",
-            isCollapsed ? "lg:pl-[8.5rem]" : "lg:pl-80",
+            isCollapsed ? "lg:pl-34" : "lg:pl-80",
           )}
         >
           <div className="mx-auto max-w-6xl">
@@ -786,6 +796,6 @@ export function AppShell({
           </div>
         </main>
       </div>
-    </GradientBackground>
+    </div>
   );
 }
