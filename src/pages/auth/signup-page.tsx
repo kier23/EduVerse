@@ -2,13 +2,50 @@ import { type FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { AuthCard } from "@/components/layout/auth-card";
-import { dashboardPathForRole } from "@/lib/auth-redirect";
 import { supabase } from "@/lib/supabase";
 import type { SignupRole } from "@/types/auth";
 import { cn } from "@/lib/utils";
 
 const signupRoles: SignupRole[] = ["teacher", "student", "superadmin"];
+
+type FeedbackDialog = {
+  open: boolean;
+  variant: "success" | "error";
+  message: string;
+};
+
+/** Returns true if an account with this email already exists. */
+async function emailAlreadyRegistered(email: string): Promise<boolean> {
+  const { data, error } = await supabase
+    .from("users")
+    .select("id")
+    .eq("email", email)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data !== null;
+}
+
+/** Returns true if this username is already taken. */
+async function usernameAlreadyTaken(username: string): Promise<boolean> {
+  const { data, error } = await supabase
+    .from("users")
+    .select("id")
+    .eq("username", username)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data !== null;
+}
 
 export function SignupPage() {
   const [fullName, setFullName] = useState("");
@@ -19,26 +56,45 @@ export function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [role, setRole] = useState<SignupRole>("student");
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [feedback, setFeedback] = useState<FeedbackDialog>({
+    open: false,
+    variant: "success",
+    message: "",
+  });
   const navigate = useNavigate();
+
+  const resetForm = () => {
+    setFullName("");
+    setUsername("");
+    setEmail("");
+    setPassword("");
+    setConfirmPassword("");
+    setShowPassword(false);
+    setShowConfirmPassword(false);
+  };
+
+  const showError = (message: string) => {
+    setFeedback({ open: true, variant: "error", message });
+  };
+
+  const showSuccess = (message: string) => {
+    setFeedback({ open: true, variant: "success", message });
+  };
 
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault();
     setSubmitting(true);
-    setError("");
-    setSuccess("");
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match.");
+      showError("Passwords do not match.");
       setSubmitting(false);
       return;
     }
 
     // Basic username validation
     if (!/^[a-zA-Z0-9_]{3,20}$/.test(username)) {
-      setError(
+      showError(
         "Username must be 3–20 characters and contain only letters, numbers, or underscores.",
       );
       setSubmitting(false);
@@ -46,6 +102,20 @@ export function SignupPage() {
     }
 
     try {
+      if (await emailAlreadyRegistered(email)) {
+        showError(
+          "An account with this email already exists. Try logging in instead.",
+        );
+        setSubmitting(false);
+        return;
+      }
+
+      if (await usernameAlreadyTaken(username)) {
+        showError("That username is already taken. Please choose another.");
+        setSubmitting(false);
+        return;
+      }
+
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
@@ -53,13 +123,18 @@ export function SignupPage() {
           data: { full_name: fullName, role, username },
         },
       });
-      console.log("Signup data:", data);
-      console.log("Signup error:", signUpError);
-      if (signUpError) {
-        console.log(signUpError);
-        throw signUpError;
-      }
+      if (signUpError) throw signUpError;
       if (!data.user) throw new Error("Account could not be created.");
+
+      // Supabase returns a user object with no identities when the email
+      // is already registered but signUp doesn't throw — treat it as a duplicate.
+      if (data.user.identities && data.user.identities.length === 0) {
+        showError(
+          "An account with this email already exists. Try logging in instead.",
+        );
+        setSubmitting(false);
+        return;
+      }
 
       // Persist username to the users table so login-by-username lookup works.
       const { error: upsertError } = await supabase.from("users").upsert(
@@ -72,20 +147,28 @@ export function SignupPage() {
         },
         { onConflict: "id" },
       );
-      if (upsertError) console.error("Failed to save username:", upsertError);
+      if (upsertError) throw upsertError;
 
-      if (data.session) {
-        navigate(dashboardPathForRole(role));
-        return;
-      }
-
-      setSuccess(
-        "Account created. Check your email to confirm, then log in. check your spam folder if you don't see it.",
+      // Success — clear the form and show confirmation. Navigation to
+      // /login happens when the user dismisses the dialog.
+      resetForm();
+      showSuccess(
+        data.session
+          ? "Account created successfully."
+          : "Account created. Check your email to confirm, then log in. Check your spam folder if you don't see it.",
       );
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Signup failed.");
+      showError(caught instanceof Error ? caught.message : "Signup failed.");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleDialogOpenChange = (open: boolean) => {
+    setFeedback((prev) => ({ ...prev, open }));
+    // Only redirect on close if the dialog was reporting success.
+    if (!open && feedback.variant === "success") {
+      navigate("/login");
     }
   };
 
@@ -164,8 +247,6 @@ export function SignupPage() {
             </Button>
           ))}
         </div>
-        {error ? <p className="text-sm text-destructive">{error}</p> : null}
-        {success ? <p className="text-sm text-emerald-600">{success}</p> : null}
         <Button type="submit" disabled={submitting} className="w-full">
           {submitting ? "Creating account..." : "Sign up"}
         </Button>
@@ -179,6 +260,30 @@ export function SignupPage() {
           </Link>
         </p>
       </form>
+
+      <Dialog open={feedback.open} onOpenChange={handleDialogOpenChange}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {feedback.variant === "success"
+                ? "Success"
+                : "Something went wrong"}
+            </DialogTitle>
+            <DialogDescription
+              className={
+                feedback.variant === "error" ? "text-destructive" : undefined
+              }
+            >
+              {feedback.message}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button onClick={() => handleDialogOpenChange(false)}>
+              {feedback.variant === "success" ? "Continue to login" : "Close"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AuthCard>
   );
 }
