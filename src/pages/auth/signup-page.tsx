@@ -140,28 +140,6 @@ export function SignupPage() {
           ? "Account created successfully."
           : "Account created. Check your email to confirm, then log in. Check your spam folder if you don't see it.",
       );
-
-      // Persist username to the users table so login-by-username lookup works.
-      const { error: upsertError } = await supabase.from("users").upsert(
-        {
-          id: data.user.id,
-          email,
-          full_name: fullName,
-          role,
-          username,
-        },
-        { onConflict: "id" },
-      );
-      if (upsertError) throw upsertError;
-
-      // Success — clear the form and show confirmation. Navigation to
-      // /login happens when the user dismisses the dialog.
-      resetForm();
-      showSuccess(
-        data.session
-          ? "Account created successfully."
-          : "Account created. Check your email to confirm, then log in. Check your spam folder if you don't see it.",
-      );
     } catch (caught) {
       showError(caught instanceof Error ? caught.message : "Signup failed.");
     } finally {
