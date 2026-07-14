@@ -126,8 +126,6 @@ export function SignupPage() {
       if (signUpError) throw signUpError;
       if (!data.user) throw new Error("Account could not be created.");
 
-      // Supabase returns a user object with no identities when the email
-      // is already registered but signUp doesn't throw — treat it as a duplicate.
       if (data.user.identities && data.user.identities.length === 0) {
         showError(
           "An account with this email already exists. Try logging in instead.",
@@ -135,6 +133,13 @@ export function SignupPage() {
         setSubmitting(false);
         return;
       }
+
+      resetForm();
+      showSuccess(
+        data.session
+          ? "Account created successfully."
+          : "Account created. Check your email to confirm, then log in. Check your spam folder if you don't see it.",
+      );
 
       // Persist username to the users table so login-by-username lookup works.
       const { error: upsertError } = await supabase.from("users").upsert(
