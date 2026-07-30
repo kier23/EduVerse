@@ -83,7 +83,7 @@ function Sidebar() {
         {roles.map(({ label, Icon, desc }) => (
           <Card
             key={label}
-            className="border-amber-900/30 bg-white/[0.05] backdrop-blur-sm"
+            className="border-amber-900/30 bg-white/5 backdrop-blur-sm"
           >
             <CardContent className="flex items-start gap-3 p-4">
               <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-amber-500/10">
