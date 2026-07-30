@@ -6,6 +6,7 @@ import {
   BookOpen,
   CalendarDays,
   ClipboardList,
+  Download,
   ExternalLink,
   FileText,
   Loader2,
@@ -50,6 +51,41 @@ function isPast(d: string | null) {
   return new Date(d).getTime() < Date.now();
 }
 
+function getFileNameFromUrl(url: string, fallback: string) {
+  try {
+    const path = new URL(url).pathname;
+    const last = path.split("/").pop();
+    return last ? decodeURIComponent(last) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+async function downloadMaterial(
+  url: string,
+  filename: string,
+  onError?: () => void,
+) {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("Download failed");
+    const blob = await res.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = blobUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(blobUrl);
+  } catch (err) {
+    console.error("Failed to download material:", err);
+    onError?.();
+    // Fallback: open in a new tab so the user can still save it manually
+    window.open(url, "_blank", "noreferrer");
+  }
+}
+
 export function StudentSubjectPage() {
   const { subjectId } = useParams<{ subjectId: string }>();
   const { user } = useAuth();
@@ -69,6 +105,14 @@ export function StudentSubjectPage() {
   const [quizAttemptsAllowed, setQuizAttemptsAllowed] = useState<
     Record<string, number | null>
   >({});
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+
+  const handleDownload = async (m: Material) => {
+    if (!m.file_url || downloadingId) return;
+    setDownloadingId(m.id);
+    await downloadMaterial(m.file_url, getFileNameFromUrl(m.file_url, m.title));
+    setDownloadingId(null);
+  };
 
   useEffect(() => {
     if (!subjectId || !user) return;
@@ -292,14 +336,31 @@ export function StudentSubjectPage() {
                       </div>
                     </div>
                     {m.file_url && (
-                      <a
-                        href={m.file_url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-amber-600 hover:underline"
-                      >
-                        Open <ExternalLink className="h-3 w-3" />
-                      </a>
+                      <div className="flex shrink-0 items-center gap-3">
+                        <a
+                          href={m.file_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1 text-xs font-medium text-amber-600 hover:underline"
+                        >
+                          Open <ExternalLink className="h-3 w-3" />
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() => handleDownload(m)}
+                          disabled={downloadingId === m.id}
+                          aria-label={`Download ${m.title}`}
+                          title="Download"
+                          className="inline-flex items-center gap-1 rounded-full bg-emerald-400/10 px-2.5 py-1 text-xs font-medium text-emerald-600 transition-colors hover:bg-emerald-400/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {downloadingId === m.id ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <Download className="h-3 w-3" />
+                          )}
+                          Download
+                        </button>
+                      </div>
                     )}
                   </div>
                 </ListItemCard>

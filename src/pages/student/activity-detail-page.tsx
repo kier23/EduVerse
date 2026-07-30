@@ -6,6 +6,7 @@ import {
   CalendarDays,
   CheckCircle2,
   Clock,
+  Download,
   FileText,
   Loader2,
   Trophy,
@@ -84,6 +85,41 @@ function formatBytes(bytes: number | null) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+function getFileNameFromUrl(url: string, fallback: string) {
+  try {
+    const path = new URL(url).pathname;
+    const last = path.split("/").pop();
+    return last ? decodeURIComponent(last) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+async function downloadFile(
+  url: string,
+  filename: string,
+  onError?: () => void,
+) {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("Download failed");
+    const blob = await res.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = blobUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(blobUrl);
+  } catch (err) {
+    console.error("Failed to download file:", err);
+    onError?.();
+    // Fallback: open in a new tab so the user can still save it manually
+    window.open(url, "_blank", "noreferrer");
+  }
+}
+
 export function ActivityDetailPage() {
   const { activityId } = useParams<{ activityId: string }>();
   const { user } = useAuth();
@@ -98,6 +134,18 @@ export function ActivityDetailPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [downloadingKey, setDownloadingKey] = useState<string | null>(null);
+
+  const handleDownload = async (
+    key: string,
+    url: string | null,
+    filename: string,
+  ) => {
+    if (!url || downloadingKey) return;
+    setDownloadingKey(key);
+    await downloadFile(url, filename);
+    setDownloadingKey(null);
+  };
 
   useEffect(() => {
     if (!activityId || !user) return;
@@ -390,14 +438,16 @@ export function ActivityDetailPage() {
                 </CardHeader>
                 <CardContent className="space-y-2">
                   {submission.files.map((f) => (
-                    <a
+                    <div
                       key={f.id}
-                      href={f.file_url ?? "#"}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex items-center justify-between rounded-xl border border-slate-100 bg-stone-900/70 px-3 py-2.5 hover:border-indigo-200 hover:bg-amber-400/10 transition-colors group"
+                      className="flex items-center justify-between gap-2 rounded-xl border border-slate-100 bg-stone-900/70 px-3 py-2.5 hover:border-indigo-200 transition-colors group"
                     >
-                      <div className="flex items-center gap-2.5 min-w-0">
+                      <a
+                        href={f.file_url ?? "#"}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex min-w-0 flex-1 items-center gap-2.5 hover:bg-amber-400/10"
+                      >
                         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-400/10">
                           <FileText className="h-4 w-4 text-indigo-400" />
                         </div>
@@ -409,9 +459,29 @@ export function ActivityDetailPage() {
                             {formatBytes(f.file_size)}
                           </p>
                         </div>
-                      </div>
-                      <ExternalLink className="h-3.5 w-3.5 shrink-0 text-slate-300 group-hover:text-indigo-400" />
-                    </a>
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleDownload(
+                            f.id,
+                            f.file_url,
+                            f.file_name ??
+                              getFileNameFromUrl(f.file_url ?? "", "file"),
+                          )
+                        }
+                        disabled={downloadingKey === f.id}
+                        aria-label={`Download ${f.file_name ?? "file"}`}
+                        title="Download"
+                        className="shrink-0 rounded-full p-1.5 text-slate-300 hover:bg-indigo-50 hover:text-indigo-500 transition-colors disabled:opacity-50"
+                      >
+                        {downloadingKey === f.id ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <Download className="h-3.5 w-3.5" />
+                        )}
+                      </button>
+                    </div>
                   ))}
                 </CardContent>
               </Card>
@@ -456,32 +526,57 @@ export function ActivityDetailPage() {
                     <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
                       Attached File
                     </p>
-                    <a
-                      href={activity.file_url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex items-center justify-between rounded-xl border border-violet-100 bg-violet-400/10/60 px-4 py-3 transition-colors hover:bg-violet-100/60 group"
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-violet-100">
-                          <FileText className="h-4 w-4 text-violet-600" />
+                    <div className="flex items-center gap-2">
+                      <a
+                        href={activity.file_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex flex-1 min-w-0 items-center justify-between rounded-xl border border-violet-100 bg-violet-400/10/60 px-4 py-3 transition-colors hover:bg-violet-100/60 group"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-violet-100">
+                            <FileText className="h-4 w-4 text-violet-600" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-medium text-slate-200 group-hover:text-violet-700">
+                              {decodeURIComponent(
+                                activity.file_url
+                                  .split("/")
+                                  .pop()
+                                  ?.split("?")[0] ?? "Attached file",
+                              )}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              Click to open
+                            </p>
+                          </div>
                         </div>
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-medium text-slate-200 group-hover:text-violet-700">
-                            {decodeURIComponent(
-                              activity.file_url
-                                .split("/")
-                                .pop()
-                                ?.split("?")[0] ?? "Attached file",
-                            )}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            Click to open
-                          </p>
-                        </div>
-                      </div>
-                      <ExternalLink className="h-4 w-4 shrink-0 text-violet-300 group-hover:text-violet-600 transition-colors" />
-                    </a>
+                        <ExternalLink className="h-4 w-4 shrink-0 text-violet-300 group-hover:text-violet-600 transition-colors" />
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleDownload(
+                            "activity-file",
+                            activity.file_url,
+                            getFileNameFromUrl(
+                              activity.file_url ?? "",
+                              activity.title,
+                            ),
+                          )
+                        }
+                        disabled={downloadingKey === "activity-file"}
+                        aria-label="Download attached file"
+                        title="Download"
+                        className="shrink-0 rounded-xl border border-violet-100 bg-violet-400/10 p-3 text-violet-600 hover:bg-violet-100 transition-colors disabled:opacity-50"
+                      >
+                        {downloadingKey === "activity-file" ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Download className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
                   </div>
                 )}
               </CardContent>
@@ -629,21 +724,46 @@ export function ActivityDetailPage() {
                       </p>
                       <div className="space-y-2">
                         {submission.files.map((file) => (
-                          <a
+                          <div
                             key={file.id}
-                            href={file.file_url ?? "#"}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="flex items-center justify-between rounded-xl border border-slate-100 bg-stone-900/70 px-3 py-2.5 hover:border-indigo-200 hover:bg-amber-400/10 transition-colors group"
+                            className="flex items-center gap-2 rounded-xl border border-slate-100 bg-stone-900/70 px-3 py-2.5 hover:border-indigo-200 transition-colors group"
                           >
-                            <div className="flex items-center gap-2.5 min-w-0">
+                            <a
+                              href={file.file_url ?? "#"}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="flex min-w-0 flex-1 items-center gap-2.5"
+                            >
                               <FileText className="h-4 w-4 text-indigo-400 shrink-0" />
                               <span className="truncate text-sm font-medium text-slate-200 group-hover:text-amber-700">
                                 {file.file_name ?? "Attachment"}
                               </span>
-                            </div>
-                            <ExternalLink className="h-3.5 w-3.5 shrink-0 text-slate-300 group-hover:text-indigo-400" />
-                          </a>
+                            </a>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleDownload(
+                                  `summary-${file.id}`,
+                                  file.file_url,
+                                  file.file_name ??
+                                    getFileNameFromUrl(
+                                      file.file_url ?? "",
+                                      "file",
+                                    ),
+                                )
+                              }
+                              disabled={downloadingKey === `summary-${file.id}`}
+                              aria-label={`Download ${file.file_name ?? "file"}`}
+                              title="Download"
+                              className="shrink-0 rounded-full p-1.5 text-slate-300 hover:bg-indigo-50 hover:text-indigo-500 transition-colors disabled:opacity-50"
+                            >
+                              {downloadingKey === `summary-${file.id}` ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              ) : (
+                                <Download className="h-3.5 w-3.5" />
+                              )}
+                            </button>
+                          </div>
                         ))}
                       </div>
                     </div>
