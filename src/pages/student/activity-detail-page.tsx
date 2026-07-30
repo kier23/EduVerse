@@ -149,9 +149,9 @@ export function ActivityDetailPage() {
 
   useEffect(() => {
     if (!activityId || !user) return;
-    setLoading(true);
 
     (async () => {
+      setLoading(true);
       const { data: act, error: actErr } = await supabase
         .from("activities")
         .select("*")

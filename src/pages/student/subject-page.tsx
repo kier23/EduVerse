@@ -109,21 +109,27 @@ export function StudentSubjectPage() {
 
   const handleDownload = async (m: Material) => {
     if (!m.file_url || downloadingId) return;
+    const fileUrl = m.file_url;
     setDownloadingId(m.id);
-    await downloadMaterial(m.file_url, getFileNameFromUrl(m.file_url, m.title));
+    await downloadMaterial(
+      fileUrl,
+      getFileNameFromUrl(fileUrl, m.title ?? "file"),
+    );
     setDownloadingId(null);
   };
 
   useEffect(() => {
     if (!subjectId || !user) return;
-    setLoading(true);
 
-    Promise.all([
-      fetchStudentSubjects(user.id),
-      fetchSubjectMaterials(subjectId),
-      fetchSubjectActivities(subjectId),
-    ])
-      .then(async ([subjects, mats, acts]) => {
+    (async () => {
+      setLoading(true);
+      try {
+        const [subjects, mats, acts] = await Promise.all([
+          fetchStudentSubjects(user.id),
+          fetchSubjectMaterials(subjectId),
+          fetchSubjectActivities(subjectId),
+        ]);
+
         const found = subjects.find((s) => s.id === subjectId) ?? null;
         setSubject(found);
         setMaterials(mats);
@@ -180,8 +186,10 @@ export function StudentSubjectPage() {
             setAttemptCounts(countMap);
           }
         }
-      })
-      .finally(() => setLoading(false));
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, [subjectId, user]);
 
   const quizActivities = useMemo(
